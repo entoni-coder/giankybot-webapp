@@ -258,7 +258,6 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
             f"👋 Welcome, {user_data['first_name']}!\n"
             f"🔑 Your referral code: `{referral_code}`\n\n"
             "💰 You received:\n"
-            "- 100 GKY bonus\n"
             "- 3 FREE spins\n\n"
             "Start spinning to win more!",
             parse_mode='Markdown',
