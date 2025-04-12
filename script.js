@@ -21,16 +21,18 @@ const wheelSections = [
 
 let currentAngle = 0;
 
-function drawArrow() {
+function drawArrow(angle) {
   const arrowHeight = 20;
   const arrowWidth = 30;
   const centerX = canvas.width / 2;
-  const centerY = canvas.height - arrowHeight / 2; // Freccia sotto la ruota
+  const centerY = canvas.height / 2 - canvas.width / 2 - 10; // Posizione della freccia sopra la ruota
+
+  const arrowAngle = angle; // Allinea la freccia alla posizione vincente
 
   ctx.beginPath();
   ctx.moveTo(centerX - arrowWidth / 2, centerY); // Punto di partenza
   ctx.lineTo(centerX + arrowWidth / 2, centerY); // Punta della freccia
-  ctx.lineTo(centerX, centerY + arrowHeight); // Punto finale (freccia verso il basso)
+  ctx.lineTo(centerX, centerY - arrowHeight); // Punto finale (freccia verso l'alto)
   ctx.closePath();
   ctx.fillStyle = "black"; // Colore della freccia
   ctx.fill();
@@ -69,7 +71,7 @@ function drawWheel() {
   }
 
   // Disegna la freccia sotto la ruota
-  drawArrow();
+  drawArrow(currentAngle); // Passa l'angolo corrente per allineare la freccia
 }
 
 function spinWheel() {
@@ -78,60 +80,4 @@ function spinWheel() {
   spinSound.play();
 
   const selectedIndex = getWeightedRandomIndex();
-  const numSections = wheelSections.length;
-  const arc = 2 * Math.PI / numSections;
-
-  // Ruota per almeno 5 giri + si ferma sul settore selezionato
-  const targetAngle = (2 * Math.PI * 5) + (Math.PI / 2 - selectedIndex * arc - arc / 2);
-  let spinTime = 4000;
-  let start = null;
-
-  function animate(timestamp) {
-    if (!start) start = timestamp;
-    const progress = timestamp - start;
-    const easing = (t) => 1 - Math.pow(1 - t, 3); // easeOutCubic
-
-    const angle = currentAngle + easing(progress / spinTime) * (targetAngle - currentAngle);
-    currentAngle = angle % (2 * Math.PI);
-    drawWheel();
-
-    if (progress < spinTime) {
-      requestAnimationFrame(animate);
-    } else {
-      currentAngle = targetAngle % (2 * Math.PI);
-      drawWheel();
-      showResult(selectedIndex);
-      spinBtn.disabled = false;
-    }
-  }
-
-  requestAnimationFrame(animate);
-}
-
-function getWeightedRandomIndex() {
-  const totalWeight = wheelSections.reduce((acc, sec) => acc + sec.weight, 0);
-  let random = Math.random() * totalWeight;
-
-  for (let i = 0; i < wheelSections.length; i++) {
-    random -= wheelSections[i].weight;
-    if (random <= 0) return i;
-  }
-  return wheelSections.length - 1; // fallback
-}
-
-function showResult(index) {
-  const selected = wheelSections[index];
-  result.textContent = `Hai vinto: ${selected.text}`;
-  if (selected.value > 0) {
-    result.style.color = "#4CAF50";
-    winSound.play();
-  } else {
-    result.style.color = "#F44336";
-    loseSound.play();
-  }
-}
-
-// Inizializza
-drawWheel();
-spinBtn.addEventListener("click", spinWheel);
 
