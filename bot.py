@@ -1,6 +1,7 @@
 import os
 import logging
 import secrets
+import json
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import (
     Application,
@@ -46,7 +47,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = users_db[user_id]
         keyboard = [
             [InlineKeyboardButton("Gira la ruota", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
-            [InlineKeyboardButton("Connetti Wallet", callback_data='connect_wallet')],
+            [InlineKeyboardButton("Il mio wallet", callback_data='my_wallet')],
             [InlineKeyboardButton("Acquista Extra Tiri", callback_data='buy_spins')],
             [InlineKeyboardButton("Ottieni Referral", callback_data='get_referral')],
             [InlineKeyboardButton("Completa Task", callback_data='complete_task')]
@@ -63,7 +64,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
     if user_id in users_db:
-        await update.message.reply_text("Sei già registrato!")
+        await update.message.reply_text("Sei già registrato! Usa /start per iniziare.")
         return
     
     await update.message.reply_text("Iniziamo la registrazione!\nInvia il tuo nome:")
@@ -98,9 +99,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['registration_step'] = 'wallet'
     
     elif step == 'wallet':
-        # Validazione semplice dell'indirizzo wallet (puoi migliorarla)
         if not text.startswith('0x') or len(text) != 42:
-            await update.message.reply_text("Indirizzo wallet non valido. Riprova:")
+            await update.message.reply_text("Indirizzo wallet non valido. Deve iniziare con 0x ed essere lungo 42 caratteri. Riprova:")
             return
         
         # Completa la registrazione
@@ -126,43 +126,75 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        import json
         data = json.loads(update.effective_message.web_app_data.data)
         prize = data['prize']
-        
         user_id = update.effective_user.id
-        user = users_db.get(user_id)
         
-        if not user:
-            await update.message.reply_text("Utente non trovato. Registrati con /register")
+        if user_id not in users_db:
+            await update.message.reply_text("❌ Utente non registrato. Usa /register")
             return
             
+        user = users_db[user_id]
+        
         if user['spins_left'] <= 0:
-            await update.message.reply_text("Non hai più tiri disponibili!")
+            await update.message.reply_text("❌ Non hai più tiri disponibili!")
             return
         
-        # Aggiorna il saldo
+        # Aggiorna il saldo e i tiri rimanenti
         user['balance'] += prize['value']
         user['spins_left'] -= 1
         
         await update.message.reply_text(
             f"🎉 Hai vinto {prize['label']}!\n\n"
-            f"💰 Nuovo saldo: {user['balance']} ETH\n"
+            f"💰 Nuovo saldo: {user['balance']:.3f} ETH\n"
             f"🎫 Tiri rimanenti: {user['spins_left']}\n\n"
-            f"I fondi sono stati inviati al tuo wallet: {user['wallet_address']}"
+            f"📍 Il premio verrà inviato a: {user['wallet_address']}",
+            parse_mode='Markdown'
         )
         
     except Exception as e:
-        logger.error(f"Errore nella gestione della webapp: {str(e)}")
-        await update.message.reply_text("Si è verificato un errore. Riprova più tardi.")
+        logger.error(f"Errore webapp: {str(e)}")
+        await update.message.reply_text("❌ Errore nel processare il premio. Riprova.")
+
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    
+    if user_id not in users_db:
+        await query.edit_message_text("❌ Registrati prima con /register")
+        return
+        
+    user = users_db[user_id]
+    
+    if query.data == 'my_wallet':
+        await query.edit_message_text(
+            f"👛 Il tuo wallet:\n\n"
+            f"📍 Indirizzo: `{user['wallet_address']}`\n"
+            f"💰 Saldo: {user['balance']:.3f} ETH\n"
+            f"🎫 Tiri rimanenti: {user['spins_left']}",
+            parse_mode='Markdown'
+        )
+    elif query.data == 'buy_spins':
+        await query.edit_message_text("🛒 Funzionalità acquisto tiri (in sviluppo)")
+    elif query.data == 'get_referral':
+        await query.edit_message_text(
+            f"📨 Invita amici!\n\n"
+            f"Il tuo codice: {user['referral_code']}\n\n"
+            f"Per ogni amico che si registra, riceverai 1 tiro extra!"
+        )
+    elif query.data == 'complete_task':
+        await query.edit_message_text("📝 Task disponibili:\n\n1. Seguici su Twitter\n2. Condividi il bot")
 
 def main():
     application = Application.builder().token(os.getenv('TELEGRAM_TOKEN')).build()
     
+    # Handlers
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('register', register))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
+    application.add_handler(CallbackQueryHandler(button_handler))
     
     logger.info("✅ Bot avviato e in ascolto...")
     application.run_polling()
