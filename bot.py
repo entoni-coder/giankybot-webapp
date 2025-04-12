@@ -39,9 +39,9 @@ WHEEL_PRIZES = [
 
 # Pacchetti spin disponibili
 SPIN_PACKAGES = {
-    '3_spins': {'spins': 3, 'price': 300, 'label': "3 spins - 300 GKY"},
-    '5_spins': {'spins': 5, 'price': 500, 'label': "5 spins - 500 GKY"},
-    '10_spins': {'spins': 10, 'price': 1000, 'label': "10 spins - 1000 GKY"}
+    '3_spins': {'spins': 3, 'price': 300, 'label': "3 spin - 300 GKY"},
+    '5_spins': {'spins': 5, 'price': 500, 'label': "5 spin - 500 GKY"},
+    '10_spins': {'spins': 10, 'price': 1000, 'label': "10 spin - 1000 GKY"}
 }
 
 # Inizializzazione database
@@ -132,45 +132,45 @@ def create_transaction(user_id, amount, tx_type):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_id = update.effective_user.id
-        logger.info(f"User {user_id} triggered /start")
+        logger.info(f"User {user_id} ha attivato /start")
         
         user = get_user(user_id)
         
         if not user:
             keyboard = [
-                [InlineKeyboardButton("📝 Register", callback_data='register')],
+                [InlineKeyboardButton("📝 Registrati", callback_data='register')],
                 [InlineKeyboardButton("ℹ️ Info", callback_data='info')]
             ]
             
             await update.message.reply_text(
-                "🎰 *Welcome to GiankyBot!* 🎰\n\n"
-                "To start playing and winning prizes:\n"
-                "1. Register with your wallet\n"
-                "2. Get 3 FREE spins\n"
-                "3. Spin the wheel to win GKY tokens!\n\n"
-                "Click the button below to register:",
+                "🎰 *Benvenuto su GiankyBot!* 🎰\n\n"
+                "Per iniziare a giocare e vincere premi:\n"
+                "1. Registrati con il tuo wallet\n"
+                "2. Ottieni 3 spin GRATIS\n"
+                "3. Gira la ruota per vincere GKY!\n\n"
+                "Clicca il bottone qui sotto per registrarti:",
                 parse_mode='Markdown',
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
         else:
             keyboard = [
-                [InlineKeyboardButton("🎡 Spin Wheel", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
-                [InlineKeyboardButton("🛒 Buy Spins", callback_data='buy_spins')],
-                [InlineKeyboardButton("📊 My Stats", callback_data='stats')]
+                [InlineKeyboardButton("🎡 Gira la Ruota", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
+                [InlineKeyboardButton("🛒 Compra Spin", callback_data='buy_spins')],
+                [InlineKeyboardButton("📊 Le mie statistiche", callback_data='stats')]
             ]
             
             await update.message.reply_text(
-                f"👋 *Welcome back, {user['first_name']}!*\n\n"
-                f"💰 Balance: `{user['balance']} GKY`\n"
-                f"🎫 Spins available: `{user['spins']}`\n\n"
-                "What would you like to do?",
+                f"👋 *Bentornato, {user['first_name']}!*\n\n"
+                f"💰 Saldo: `{user['balance']} GKY`\n"
+                f"🎫 Spin disponibili: `{user['spins']}`\n\n"
+                "Cosa vuoi fare?",
                 parse_mode='Markdown',
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
             
     except Exception as e:
-        logger.error(f"Error in start handler: {e}")
-        await update.message.reply_text("❌ An error occurred. Please try again.")
+        logger.error(f"Errore nel gestire /start: {e}")
+        await update.message.reply_text("❌ Si è verificato un errore. Riprova.")
 
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -178,12 +178,12 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     user_id = update.effective_user.id
     if get_user(user_id):
-        await query.edit_message_text("ℹ️ You're already registered!")
+        await query.edit_message_text("ℹ️ Sei già registrato!")
         return
     
     await query.edit_message_text(
-        "📝 *Registration - Step 1/4*\n\n"
-        "Please send me your *first name*:",
+        "📝 *Registrazione - Passo 1/4*\n\n"
+        "Per favore inviami il tuo *nome*:",
         parse_mode='Markdown'
     )
     context.user_data['registration_step'] = 'first_name'
@@ -197,8 +197,8 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     if step == 'first_name':
         context.user_data['first_name'] = text
         await update.message.reply_text(
-            "📝 *Registration - Step 2/4*\n\n"
-            "Now send me your *last name*:",
+            "📝 *Registrazione - Passo 2/4*\n\n"
+            "Ora inviami il tuo *cognome*:",
             parse_mode='Markdown'
         )
         context.user_data['registration_step'] = 'last_name'
@@ -207,8 +207,8 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     elif step == 'last_name':
         context.user_data['last_name'] = text
         await update.message.reply_text(
-            "📝 *Registration - Step 3/4*\n\n"
-            "Now send me your *phone number*:",
+            "📝 *Registrazione - Passo 3/4*\n\n"
+            "Ora inviami il tuo *numero di telefono*:",
             parse_mode='Markdown'
         )
         context.user_data['registration_step'] = 'phone'
@@ -216,13 +216,13 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     elif step == 'phone':
         if not text.isdigit():
-            await update.message.reply_text("❌ Invalid phone number. Please try again:")
+            await update.message.reply_text("❌ Numero di telefono non valido. Riprova:")
             return REGISTER
         
         context.user_data['phone'] = text
         await update.message.reply_text(
-            "📝 *Registration - Step 4/4*\n\n"
-            "Finally, send me your *Ethereum wallet address* (0x...):",
+            "📝 *Registrazione - Passo 4/4*\n\n"
+            "Infine, inviami il tuo *indirizzo wallet Ethereum* (0x...):",
             parse_mode='Markdown'
         )
         context.user_data['registration_step'] = 'wallet'
@@ -230,7 +230,7 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     elif step == 'wallet':
         if not text.startswith('0x') or len(text) != 42:
-            await update.message.reply_text("❌ Invalid wallet address. Please try again:")
+            await update.message.reply_text("❌ Indirizzo wallet non valido. Riprova:")
             return REGISTER
         
         referral_code = hashlib.sha256(f"{user_id}{text}".encode()).hexdigest()[:8].upper()
@@ -249,86 +249,20 @@ async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
         del context.user_data['registration_step']
         
         keyboard = [
-            [InlineKeyboardButton("🎡 SPIN NOW", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
-            [InlineKeyboardButton("📢 Invite Friends", callback_data='invite')]
+            [InlineKeyboardButton("🎡 Gira la Ruota", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
+            [InlineKeyboardButton("🛒 Compra Spin", callback_data='buy_spins')],
+            [InlineKeyboardButton("📊 Le mie statistiche", callback_data='stats')]
         ]
         
         await update.message.reply_text(
-            "🎉 *Registration Complete!*\n\n"
-            f"👋 Welcome, {user_data['first_name']}!\n"
-            f"🔑 Your referral code: `{referral_code}`\n\n"
-            "💰 You received:\n"
-            "- 3 FREE spins\n\n"
-            "Start spinning to win more!",
+            f"🎉 Registrazione completata con successo, {context.user_data['first_name']}!\n\n"
+            "🎰 Sei pronto per iniziare a giocare! Hai ricevuto 3 spin GRATIS.\n\n"
+            "Cosa vuoi fare?",
             parse_mode='Markdown',
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
-        return ConversationHandler.END
 
-async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        data = json.loads(update.effective_message.web_app_data.data)
-        prize = data['prize']
-        
-        user_id = update.effective_user.id
-        user = get_user(user_id)
-        
-        if not user:
-            await update.message.reply_text("⚠️ Please register first!")
-            return
-        
-        if user['spins'] <= 0:
-            await update.message.reply_text("❌ No spins left! Buy more with /buyspin")
-            return
-        
-        # Update user balance and spins
-        new_balance = user['balance'] + prize['value']
-        new_spins = user['spins'] - 1
-        
-        update_user(user_id, {
-            'balance': new_balance,
-            'spins': new_spins
-        })
-        
-        create_transaction(user_id, prize['value'], 'wheel_prize')
-        
-        await update.message.reply_text(
-            f"🎉 *You won {prize['label']}!*\n\n"
-            f"💰 New balance: `{new_balance} GKY`\n"
-            f"🎫 Spins left: `{new_spins}`",
-            parse_mode='Markdown'
-        )
-        
-    except Exception as e:
-        logger.error(f"WebApp error: {e}")
-        await update.message.reply_text("❌ Error processing your spin. Please try again.")
-
-async def buy_spins_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    user = get_user(user_id)
-    
-    if not user:
-        await update.message.reply_text("⚠️ Please register first!")
-        return
-    
-    keyboard = [
-        [InlineKeyboardButton(SPIN_PACKAGES['3_spins']['label'], callback_data='buy_3')],
-        [InlineKeyboardButton(SPIN_PACKAGES['5_spins']['label'], callback_data='buy_5')],
-        [InlineKeyboardButton(SPIN_PACKAGES['10_spins']['label'], callback_data='buy_10')],
-        [InlineKeyboardButton("🔙 Back", callback_data='back')]
-    ]
-    
-    await update.message.reply_text(
-        f"🛒 *Buy Spins*\n\n"
-        f"💰 Your balance: `{user['balance']} GKY`\n\n"
-        "Select a package:",
-        parse_mode='Markdown',
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-    
-    return BUY_SPINS
-
-async def handle_spin_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def buy_spins(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
@@ -336,78 +270,18 @@ async def handle_spin_purchase(update: Update, context: ContextTypes.DEFAULT_TYP
     user = get_user(user_id)
     
     if not user:
-        await query.edit_message_text("⚠️ Please register first!")
-        return ConversationHandler.END
+        await query.edit_message_text("ℹ️ Devi prima registrarti.")
+        return
     
-    if query.data == 'back':
-        await query.edit_message_text("🔙 Returning to main menu...")
-        return ConversationHandler.END
-    
-    package = query.data.replace('buy_', '')
-    spin_package = SPIN_PACKAGES.get(f"{package}_spins")
-    
-    if not spin_package:
-        await query.edit_message_text("❌ Invalid package selected")
-        return ConversationHandler.END
-    
-    if user['balance'] < spin_package['price']:
-        await query.edit_message_text("❌ Insufficient balance!")
-        return ConversationHandler.END
-    
-    # Process purchase
-    new_balance = user['balance'] - spin_package['price']
-    new_spins = user['spins'] + spin_package['spins']
-    
-    update_user(user_id, {
-        'balance': new_balance,
-        'spins': new_spins
-    })
-    
-    create_transaction(user_id, spin_package['price'], 'spin_purchase')
+    keyboard = [
+        [InlineKeyboardButton(p['label'], callback_data=f'buy_{key}') for key, p in SPIN_PACKAGES.items()]
+    ]
     
     await query.edit_message_text(
-        f"✅ Purchased {spin_package['spins']} spins for {spin_package['price']} GKY!\n\n"
-        f"💰 New balance: `{new_balance} GKY`\n"
-        f"🎫 Total spins: `{new_spins}`",
-        parse_mode='Markdown'
+        "🛒 *Acquista Spin*\n\n"
+        "Scegli il pacchetto di spin che desideri acquistare:",
+        parse_mode='Markdown',
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
-    
-    return ConversationHandler.END
+    return BUY_SPINS
 
-# Configurazione bot
-def main():
-    application = Application.builder().token(os.getenv('TELEGRAM_TOKEN')).build()
-    
-    # Handler conversazione registrazione
-    conv_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(register, pattern='^register$')],
-        states={
-            REGISTER: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_registration)],
-        },
-        fallbacks=[],
-    )
-    
-    # Handler acquisto spin
-    buy_spins_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(buy_spins_menu, pattern='^buy_spins$')],
-        states={
-            BUY_SPINS: [CallbackQueryHandler(handle_spin_purchase, pattern='^buy_')],
-        },
-        fallbacks=[CallbackQueryHandler(handle_spin_purchase, pattern='^back$')]
-    )
-    
-    # Aggiunta tutti gli handler
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(conv_handler)
-    application.add_handler(buy_spins_handler)
-    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
-    
-    # Comandi aggiuntivi
-    application.add_handler(CommandHandler('buyspin', buy_spins_menu))
-    
-    # Avvio bot
-    logger.info("Starting bot...")
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
