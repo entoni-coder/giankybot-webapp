@@ -221,7 +221,7 @@ async def spin_wheel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton(
                 "SPIN NOW! 🎡", 
                 web_app=WebAppInfo(url=web_app_url)
-            ]
+            )]
         ]),
         parse_mode='Markdown'
     )
@@ -257,7 +257,7 @@ async def buy_spins(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         spin_options,
         parse_mode='Markdown',
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        reply_markup=InlineKeyboardMarkup(keyboard))
     
     return BUY_SPINS
 
