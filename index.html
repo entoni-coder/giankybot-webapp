@@ -1,35 +1,26 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giankybotes - Ruota della Fortuna</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruota della Fortuna - Giankybotes</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Giankybotes</h1>
-        <h2>Gira la ruota</h2>
-        
-        <div class="wheel-container">
-            <div class="wheel" id="wheel">
-                <div class="wheel-center"></div>
-            </div>
-            <div class="pointer"></div>
-        </div>
-        
-        <button class="spin-btn" id="spinBtn">GIRA LA RUOTA</button>
-        
-        <div class="result-container" id="resultContainer">
-            <div class="result" id="result"></div>
-        </div>
+  <div class="container">
+    <h1>Giankybotes</h1>
+    <p>Gira la ruota</p>
+    <div class="wheel-container">
+      <canvas id="wheelCanvas" width="400" height="400"></canvas>
+      <div class="pointer"></div>
     </div>
-    
-    <audio id="wheelSound" src="https://www.soundjay.com/mechanical/sounds/spinner-1.mp3" preload="auto"></audio>
-    <audio id="winSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
-    <audio id="loseSound" src="https://www.soundjay.com/human/sounds/sad-trombone-01.mp3" preload="auto"></audio>
-    
-    <script src="script.js"></script>
+    <button id="spinBtn">GIRA LA RUOTA</button>
+    <p id="result"></p>
+  </div>
+  <audio id="spinSound" src="spin.mp3"></audio>
+  <audio id="winSound" src="win.mp3"></audio>
+  <audio id="loseSound" src="lose.mp3"></audio>
+  <script src="script.js"></script>
 </body>
 </html>
+
