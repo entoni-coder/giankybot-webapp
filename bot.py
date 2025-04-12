@@ -160,7 +160,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎫 Get free spins by registering or using a referral code\n\n"
         "Choose an option to get started:",
         reply_markup=InlineKeyboardMarkup(keyboard))
-    )
+    
     
     return REGISTER
 
