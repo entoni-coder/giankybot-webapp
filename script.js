@@ -7,34 +7,18 @@ const spinSound = document.getElementById("spinSound");
 const winSound = document.getElementById("winSound");
 const loseSound = document.getElementById("loseSound");
 
-// Configurazione con probabilità
+// Configurazione con probabilità aggiornata per Giankybotes
 const wheelSections = [
-  { text: "10", value: 10, color: "#FF6384", weight: 40 },
-  { text: "20", value: 20, color: "#36A2EB", weight: 30 },
-  { text: "50", value: 50, color: "#4BC0C0", weight: 15 },
-  { text: "100", value: 100, color: "#9966FF", weight: 7 },
-  { text: "150", value: 150, color: "#FF9F40", weight: 5 },
-  { text: "200", value: 200, color: "#8AC24A", weight: 2 },
   { text: "500", value: 500, color: "#FFCE56", weight: 1 },
-  { text: "You Lost", value: 0, color: "#F44336", weight: 10 }
+  { text: "1000", value: 1000, color: "#4BC0C0", weight: 1 },
+  { text: "200", value: 200, color: "#8AC24A", weight: 1 },
+  { text: "You Lost", value: 0, color: "#F44336", weight: 0.5 },
+  { text: "You Lost", value: 0, color: "#F44336", weight: 1.0 },
+  { text: "You Lost", value: 0, color: "#F44336", weight: 0.5 }
 ];
 
 let currentAngle = 0;
-
-function drawArrow() {
-  const arrowHeight = 20;
-  const arrowWidth = 30;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height - arrowHeight / 2; // Freccia sotto la ruota
-
-  ctx.beginPath();
-  ctx.moveTo(centerX - arrowWidth / 2, centerY); // Punto di partenza
-  ctx.lineTo(centerX + arrowWidth / 2, centerY); // Punta della freccia
-  ctx.lineTo(centerX, centerY + arrowHeight); // Punto finale (freccia verso il basso)
-  ctx.closePath();
-  ctx.fillStyle = "black"; // Colore della freccia
-  ctx.fill();
-}
+let isSpinning = false;
 
 function drawWheel() {
   const radius = canvas.width / 2;
@@ -45,16 +29,18 @@ function drawWheel() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Disegna gli spicchi
   for (let i = 0; i < numSections; i++) {
     const startAngle = i * arc + currentAngle;
     const endAngle = startAngle + arc;
 
-    // Spicchio
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, startAngle, endAngle);
     ctx.fillStyle = wheelSections[i].color;
     ctx.fill();
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 2;
     ctx.stroke();
 
     // Testo
@@ -63,16 +49,22 @@ function drawWheel() {
     ctx.rotate(startAngle + arc / 2);
     ctx.textAlign = "right";
     ctx.fillStyle = "white";
-    ctx.font = "bold 16px Arial";
-    ctx.fillText(wheelSections[i].text, radius - 10, 10);
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(wheelSections[i].text, radius - 20, 10);
     ctx.restore();
   }
 
-  // Disegna la freccia sotto la ruota
-  drawArrow();
+  // Centro della ruota
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI);
+  ctx.fillStyle = "#333";
+  ctx.fill();
 }
 
 function spinWheel() {
+  if (isSpinning) return;
+  
+  isSpinning = true;
   spinBtn.disabled = true;
   result.textContent = "";
   spinSound.play();
@@ -83,7 +75,7 @@ function spinWheel() {
 
   // Ruota per almeno 5 giri + si ferma sul settore selezionato
   const targetAngle = (2 * Math.PI * 5) + (Math.PI / 2 - selectedIndex * arc - arc / 2);
-  let spinTime = 4000;
+  const spinTime = 4000;
   let start = null;
 
   function animate(timestamp) {
@@ -102,6 +94,7 @@ function spinWheel() {
       drawWheel();
       showResult(selectedIndex);
       spinBtn.disabled = false;
+      isSpinning = false;
     }
   }
 
@@ -116,12 +109,13 @@ function getWeightedRandomIndex() {
     random -= wheelSections[i].weight;
     if (random <= 0) return i;
   }
-  return wheelSections.length - 1; // fallback
+  return wheelSections.length - 1;
 }
 
 function showResult(index) {
   const selected = wheelSections[index];
   result.textContent = `Hai vinto: ${selected.text}`;
+  
   if (selected.value > 0) {
     result.style.color = "#4CAF50";
     winSound.play();
@@ -131,9 +125,8 @@ function showResult(index) {
   }
 }
 
-// Inizializza
-drawWheel();
-spinBtn.addEventListener("click", spinWheel);
-
-
-
+// Inizializzazione
+window.addEventListener('load', () => {
+  drawWheel();
+  spinBtn.addEventListener('click', spinWheel);
+});
