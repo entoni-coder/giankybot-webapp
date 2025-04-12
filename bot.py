@@ -240,7 +240,7 @@ async def buy_spins(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         spin_options,
         parse_mode='Markdown',
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        reply_markup=InlineKeyboardMarkup(keyboard))
     
     return BUY_SPINS
 
@@ -426,4 +426,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+    
