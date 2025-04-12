@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { value: 0.01,  probability: 10, label: "0.01 ETH",  color: "#4BC0C0" },
         { value: 0.02,  probability: 4,  label: "0.02 ETH",  color: "#9966FF" },
         { value: 0.05,  probability: 1,  label: "0.05 ETH",  color: "#FF9F40" },
-        { value: 0,     probability: 10, label: "💔 YOU LOST", color: "#666666" }
+        { value: 0.1,   probability: 1,  label: "0.1 ETH",   color: "#00FF7F" },
+        { value: 0,     probability: 10, label: "YOU LOST", color: "#cccccc" }
     ];
 
     function createWheel() {
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const label = document.createElement('span');
             label.textContent = prize.label;
+            label.className = 'segment-label';
             label.style.transform = `skewY(${90 - segmentAngle}deg) rotate(${segmentAngle / 2}deg)`;
 
             segment.appendChild(label);
@@ -52,17 +54,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const winnerIndex = pickPrize();
         const degreesPerSegment = 360 / prizes.length;
         const randomOffset = Math.floor(Math.random() * degreesPerSegment);
-        const spinDegrees = 360 * 8 + (360 - (winnerIndex * degreesPerSegment)) - randomOffset;
+        const spinDegrees = 360 * 6 + (360 - (winnerIndex * degreesPerSegment)) - randomOffset;
 
-        wheel.style.transition = 'transform 2.5s ease-out';
+        wheel.style.transition = 'transform 3s cubic-bezier(0.25, 1, 0.5, 1)';
         wheel.style.transform = `rotate(${spinDegrees}deg)`;
 
         setTimeout(() => {
             const prize = prizes[winnerIndex];
-            prizeText.textContent = prize.value > 0
-                ? `🎉 HAI VINTO ${prize.label}!`
-                : `😢 ${prize.label}`;
-
+            prizeText.textContent = prize.value > 0 ? `🎉 HAI VINTO ${prize.label}!` : `😢 ${prize.label}`;
             resultContainer.classList.remove('hidden');
             spinButton.disabled = false;
 
@@ -73,9 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     timestamp: new Date().toISOString()
                 }));
             }
-        }, 2600);
+        }, 3000);
     });
 
     createWheel();
 });
+
 
