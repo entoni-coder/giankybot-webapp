@@ -116,3 +116,4 @@ function showResult(index) {
 // Inizializza
 drawWheel();
 spinBtn.addEventListener("click", spinWheel);
+
