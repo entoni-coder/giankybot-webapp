@@ -120,10 +120,10 @@ def create_transaction(user_id, amount, tx_type):
     conn = sqlite3.connect('giankybot.db')
     cursor = conn.cursor()
     
-    cursor.execute(''
+    cursor.execute('''
     INSERT INTO transactions (user_id, amount, tx_type)
     VALUES (?, ?, ?)
-    '', (user_id, amount, tx_type))
+    ''', (user_id, amount, tx_type))
     
     conn.commit()
     conn.close()
