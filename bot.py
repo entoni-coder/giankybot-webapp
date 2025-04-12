@@ -123,7 +123,7 @@ def create_transaction(user_id, amount, tx_type):
     cursor.execute(''
     INSERT INTO transactions (user_id, amount, tx_type)
     VALUES (?, ?, ?)
-    ''', (user_id, amount, tx_type))
+    '', (user_id, amount, tx_type))
     
     conn.commit()
     conn.close()
