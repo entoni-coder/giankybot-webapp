@@ -7,7 +7,6 @@ const spinSound = document.getElementById("spinSound");
 const winSound = document.getElementById("winSound");
 const loseSound = document.getElementById("loseSound");
 
-// Configurazione con probabilità
 const wheelSections = [
   { text: "10", value: 10, color: "#FF6384", weight: 40 },
   { text: "20", value: 20, color: "#36A2EB", weight: 30 },
@@ -15,8 +14,8 @@ const wheelSections = [
   { text: "100", value: 100, color: "#9966FF", weight: 7 },
   { text: "150", value: 150, color: "#FF9F40", weight: 5 },
   { text: "200", value: 200, color: "#8AC24A", weight: 2 },
-  { text: "500", value: 500, color: "#FFCE56", weight: 1 },
-  { text: "You Lost", value: 0, color: "#F44336", weight: 10 }
+  { text: "500", value: 500, color: "#FFD700", weight: 1 },
+  { text: "You Lost", value: 0, color: "#FF3B3B", weight: 10 }
 ];
 
 let currentAngle = 0;
@@ -34,24 +33,38 @@ function drawWheel() {
     const startAngle = i * arc + currentAngle;
     const endAngle = startAngle + arc;
 
-    // Spicchio
+    const gradient = ctx.createLinearGradient(centerX, centerY, centerX + radius * Math.cos(startAngle), centerY + radius * Math.sin(startAngle));
+    gradient.addColorStop(0, wheelSections[i].color);
+    gradient.addColorStop(1, "#222");
+
+    // Draw segment
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-    ctx.fillStyle = wheelSections[i].color;
+    ctx.fillStyle = gradient;
     ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Testo
+    // Draw text
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(startAngle + arc / 2);
     ctx.textAlign = "right";
-    ctx.fillStyle = "white";
-    ctx.font = "bold 16px Arial";
-    ctx.fillText(wheelSections[i].text, radius - 10, 10);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 18px 'Segoe UI'";
+    ctx.fillText(wheelSections[i].text, radius - 15, 8);
     ctx.restore();
   }
+
+  // Draw center circle
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+  ctx.fillStyle = "#fff";
+  ctx.fill();
+  ctx.strokeStyle = "#000";
+  ctx.stroke();
 }
 
 function spinWheel() {
@@ -62,10 +75,8 @@ function spinWheel() {
   const selectedIndex = getWeightedRandomIndex();
   const numSections = wheelSections.length;
   const arc = 2 * Math.PI / numSections;
-
-  // Ruota per almeno 5 giri + si ferma sul settore selezionato
   const targetAngle = (2 * Math.PI * 5) + (Math.PI / 2 - selectedIndex * arc - arc / 2);
-  let spinTime = 4000;
+  const spinTime = 4000;
   let start = null;
 
   function animate(timestamp) {
@@ -91,29 +102,19 @@ function spinWheel() {
 }
 
 function getWeightedRandomIndex() {
-  const totalWeight = wheelSections.reduce((acc, sec) => acc + sec.weight, 0);
-  let random = Math.random() * totalWeight;
+  const totalWeight = wheelSections.reduce((sum, s) => sum + s.weight, 0);
+  let rand = Math.random() * totalWeight;
 
   for (let i = 0; i < wheelSections.length; i++) {
-    random -= wheelSections[i].weight;
-    if (random <= 0) return i;
+    rand -= wheelSections[i].weight;
+    if (rand <= 0) return i;
   }
-  return wheelSections.length - 1; // fallback
+  return wheelSections.length - 1;
 }
 
 function showResult(index) {
   const selected = wheelSections[index];
-  result.textContent = `Hai vinto: ${selected.text}`;
-  if (selected.value > 0) {
-    result.style.color = "#4CAF50";
-    winSound.play();
-  } else {
-    result.style.color = "#F44336";
-    loseSound.play();
-  }
+  result.textContent = selected.value > 0 ? `🎉 Hai vinto: ${selected.text}!` : `💀 ${selected.text}`;
+  result.style.color = selected.value > 0 ? "#00e676" : "#ff5252";
+  selected.value > 0 ? winSound.play() : loseSound.play();
 }
-
-// Inizializza
-drawWheel();
-spinBtn.addEventListener("click", spinWheel);
-
