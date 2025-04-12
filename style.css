@@ -1,4 +1,4 @@
-* {
+* { 
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -140,4 +140,13 @@ h2 {
     text-align: center;
     padding-left: 40px;
     box-sizing: border-box;
+    transform: rotate(calc(360deg / var(--sections))) skewY(-60deg);
 }
+
+.wheel-section:nth-child(1) { background-color: #FF5733; }
+.wheel-section:nth-child(2) { background-color: #33FF57; }
+.wheel-section:nth-child(3) { background-color: #3357FF; }
+.wheel-section:nth-child(4) { background-color: #FF33A1; }
+.wheel-section:nth-child(5) { background-color: #FFC300; }
+.wheel-section:nth-child(6) { background-color: #9B59B6; }
+
