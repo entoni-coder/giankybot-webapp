@@ -76,10 +76,10 @@ h2 {
     transform: translateX(-50%);
     width: 0;
     height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
     border-top: 30px solid #ff5722;
-    z-index: 5;
+    z-index: 20;
 }
 
 .spin-btn {
@@ -93,6 +93,8 @@ h2 {
     margin-bottom: 30px;
     transition: all 0.3s;
     box-shadow: 0 5px 15px rgba(106, 60, 181, 0.4);
+    width: 100%;
+    max-width: 250px;
 }
 
 .spin-btn:hover {
@@ -104,8 +106,13 @@ h2 {
     transform: translateY(1px);
 }
 
+.spin-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
 .result-container {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     min-height: 60px;
 }
 
@@ -116,27 +123,6 @@ h2 {
     border-radius: 10px;
     background-color: #f0e6ff;
     display: inline-block;
-}
-
-.buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.action-btn {
-    background-color: #e0d0ff;
-    color: #4a2c82;
-    border: none;
-    padding: 12px;
-    font-size: 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.action-btn:hover {
-    background-color: #d0b0ff;
 }
 
 .wheel-section {
@@ -150,8 +136,8 @@ h2 {
     font-weight: bold;
     color: white;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    font-size: 14px;
+    font-size: 16px;
     text-align: center;
-    padding-left: 30px;
+    padding-left: 40px;
     box-sizing: border-box;
 }
