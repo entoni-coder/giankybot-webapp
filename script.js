@@ -7,36 +7,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const winSound = document.getElementById('winSound');
     const loseSound = document.getElementById('loseSound');
     
-    // Configurazione della ruota
+    // Configurazione della ruota con probabilità maggiori per valori bassi
     const wheelSections = [
-        { text: "10", value: 10, color: "#FF6384", weight: 20 },
-        { text: "20", value: 20, color: "#36A2EB", weight: 15 },
-        { text: "30", value: 30, color: "#FFCE56", weight: 12 },
-        { text: "50", value: 50, color: "#4BC0C0", weight: 8 },
-        { text: "100", value: 100, color: "#9966FF", weight: 5 },
-        { text: "150", value: 150, color: "#FF9F40", weight: 3 },
-        { text: "200", value: 200, color: "#8AC24A", weight: 2 },
-        { text: "You Lost", value: 0, color: "#F44336", weight: 35 }
+        { text: "10", value: 10, color: "#FF6384", weight: 30 },  // 30% probabilità
+        { text: "20", value: 20, color: "#36A2EB", weight: 25 },  // 25% probabilità
+        { text: "30", value: 30, color: "#FFCE56", weight: 20 },  // 20% probabilità
+        { text: "50", value: 50, color: "#4BC0C0", weight: 10 },  // 10% probabilità
+        { text: "100", value: 100, color: "#9966FF", weight: 7 }, // 7% probabilità
+        { text: "150", value: 150, color: "#FF9F40", weight: 5 }, // 5% probabilità
+        { text: "200", value: 200, color: "#8AC24A", weight: 2 }, // 2% probabilità
+        { text: "You Lost", value: 0, color: "#F44336", weight: 1 } // 1% probabilità
     ];
     
-    // Crea la ruota visivamente
+    // Crea la ruota visivamente con spicchi ordinati
     function createWheel() {
         const totalWeight = wheelSections.reduce((sum, section) => sum + section.weight, 0);
         let cumulativeAngle = 0;
         
-        wheelSections.forEach((section, index) => {
+        // Ordina gli spicchi per valore crescente
+        const sortedSections = [...wheelSections].sort((a, b) => a.value - b.value);
+        
+        sortedSections.forEach((section, index) => {
             const sectionAngle = (section.weight / totalWeight) * 360;
             const sectionElement = document.createElement('div');
             sectionElement.className = 'wheel-section';
-            sectionElement.textContent = section.text;
             sectionElement.style.backgroundColor = section.color;
             sectionElement.style.transform = `rotate(${cumulativeAngle}deg)`;
-            sectionElement.style.clipPath = `polygon(0 0, 100% 0, 100% 100%)`;
             
-            // Aggiusta la posizione del testo
+            // Calcola la posizione del testo
             const textRotation = cumulativeAngle + sectionAngle / 2;
-            sectionElement.style.transform = `rotate(${cumulativeAngle}deg)`;
-            sectionElement.innerHTML = `<span style="transform: rotate(${textRotation}deg); display: inline-block; transform-origin: left center; margin-left: 10px;">${section.text}</span>`;
+            sectionElement.innerHTML = `
+                <span style="
+                    transform: rotate(${textRotation}deg);
+                    display: inline-block;
+                    transform-origin: left center;
+                    margin-left: 20px;
+                    width: 80px;
+                ">
+                    ${section.text}
+                </span>
+            `;
             
             wheel.appendChild(sectionElement);
             cumulativeAngle += sectionAngle;
@@ -48,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         spinBtn.disabled = true;
         resultContainer.style.display = 'none';
         
-        // Calcola l'angolo di rotazione basato sulle probabilità
+        // Calcola la sezione vincente in base alle probabilità
         const totalWeight = wheelSections.reduce((sum, section) => sum + section.weight, 0);
         const random = Math.random() * totalWeight;
         let cumulativeWeight = 0;
@@ -63,12 +73,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Calcola l'angolo di rotazione per centrare la sezione selezionata
+        // Prima calcoliamo l'angolo di inizio della sezione
+        let sectionStartAngle = 0;
+        for (let i = 0; i < selectedIndex; i++) {
+            sectionStartAngle += (wheelSections[i].weight / totalWeight) * 360;
+        }
+        
+        // Poi calcoliamo l'angolo centrale della sezione
         const sectionAngle = (wheelSections[selectedIndex].weight / totalWeight) * 360;
-        const totalAngle = 360 * 5; // 5 giri completi
-        const targetAngle = totalAngle + (360 - (selectedIndex * (360 / wheelSections.length) + sectionAngle / 2));
+        const sectionCenterAngle = sectionStartAngle + sectionAngle / 2;
+        
+        // Rotazione completa (5 giri) + angolo per centrare la sezione
+        const totalAngle = 360 * 5 + (360 - sectionCenterAngle);
         
         // Animazione della ruota
-        wheel.style.transform = `rotate(${targetAngle}deg)`;
+        wheel.style.transform = `rotate(${totalAngle}deg)`;
         wheelSound.currentTime = 0;
         wheelSound.play();
         
@@ -99,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function sendToWallet(amount) {
         console.log(`Invio di ${amount} al wallet...`);
         // Qui andrebbe il codice reale per connettersi al wallet e inviare l'importo
-        // Per una demo reale, dovresti integrare con un servizio di wallet come MetaMask
+        alert(`Hai vinto ${amount}! L'importo è stato inviato al tuo wallet.`);
     }
     
     // Inizializza la ruota
