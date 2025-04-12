@@ -26,23 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
             segment.className = 'wheel-segment';
             segment.style.transform = `rotate(${index * segmentAngle}deg)`;
             segment.style.backgroundColor = prize.color;
-            
-            const label = document.createElement('span');
-            label.className = 'segment-label';
-            label.textContent = prize.label;
-            
-            segment.appendChild(label);
+            segment.appendChild(Object.assign(document.createElement('span'), { className: 'segment-label', textContent: prize.label }));
             wheel.appendChild(segment);
         });
     }
 
     function pickPrize() {
-        const weighted = [];
-        prizes.forEach((prize, index) => {
-            for (let i = 0; i < prize.probability; i++) {
-                weighted.push(index);
-            }
-        });
+        const weighted = prizes.flatMap((prize, index) => Array(prize.probability).fill(index));
         return weighted[Math.floor(Math.random() * weighted.length)];
     }
 
@@ -54,35 +44,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const winnerIndex = pickPrize();
         const segmentAngle = 360 / prizes.length;
         const stopAngle = winnerIndex * segmentAngle + Math.random() * segmentAngle;
-        
         wheel.style.setProperty('--stop-angle', `${stopAngle}deg`);
         wheel.style.animation = 'none';
         void wheel.offsetWidth;
         wheel.style.animation = 'spin 2.5s cubic-bezier(0.08, 0.82, 0.17, 1) forwards';
-        
+
         setTimeout(() => {
             const prize = prizes[winnerIndex];
             prizeDisplay.textContent = prize.value > 0 ? `HAI VINTO ${prize.label}!` : prize.label;
             prizeDisplay.className = 'prize-display prize-pop';
-            
-            if(prize.value > 0) {
-                prizeDisplay.style.background = 'linear-gradient(135deg, #ffd700, #ff9900)';
-            } else {
-                prizeDisplay.style.background = 'linear-gradient(135deg, #cccccc, #999999)';
-            }
-            
+            prizeDisplay.style.background = prize.value > 0 ? 'linear-gradient(135deg, #ffd700, #ff9900)' : 'linear-gradient(135deg, #cccccc, #999999)';
             prize.sound.currentTime = 0;
             prize.sound.play();
-            
             resultContainer.classList.add('visible');
             spinButton.disabled = false;
-            
+
             if (window.Telegram && window.Telegram.WebApp) {
-                Telegram.WebApp.sendData(JSON.stringify({
-                    action: "wheel_spin",
-                    prize: prize,
-                    timestamp: new Date().toISOString()
-                }));
+                Telegram.WebApp.sendData(JSON.stringify({ action: "wheel_spin", prize, timestamp: new Date().toISOString() }));
             }
         }, 2500);
     });
