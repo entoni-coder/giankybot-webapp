@@ -1,34 +1,27 @@
 body {
     margin: 0;
     overflow: hidden;
-    font-family: sans-serif;
+    font-family: 'Arial Rounded MT Bold', sans-serif;
 }
 
 .casino-background {
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at 20% 30%, #1a2a6c, #b21f1f, #fdbb2d),
-                url('billiard-balls.png') center/cover no-repeat;
-}
-
-.confetti {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: url('confetti.png') center/cover no-repeat;
-    opacity: 0.7;
-    z-index: 1;
+    background: radial-gradient(circle at 30% 30%, #111322, #1a1a1a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .container {
-    position: relative;
-    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
 }
 
 .wheel-container {
@@ -44,24 +37,22 @@ body {
     border-radius: 50%;
     position: relative;
     overflow: hidden;
-    border: 10px solid #d4af37;
-    box-shadow: 0 0 30px rgba(212, 175, 55, 0.7);
-    background-color: #2a2a2a;
-    transform-origin: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    transform: rotate(-22.5deg); /* Offset per centrare il primo spicchio */
 }
 
 .pointer {
     position: absolute;
-    top: -25px;
+    top: -15px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
-    border-left: 25px solid transparent;
-    border-right: 25px solid transparent;
-    border-top: 50px solid #ff0000;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid #ff0000;
     z-index: 10;
-    filter: drop-shadow(0 0 5px gold);
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
 }
 
 .wheel-segment {
@@ -70,43 +61,102 @@ body {
     height: 50%;
     top: 0;
     left: 50%;
-    transform-origin: 100% 100%;
-    clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+    transform-origin: 0 100%;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
     display: flex;
     justify-content: center;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
     padding-top: 20px;
     box-sizing: border-box;
-    border-right: 1px solid rgba(255,255,255,0.3);
 }
 
-.wheel-segment span {
-    transform: rotate(-90deg);
-    font-size: 14px;
+.segment-label {
+    font-size: 12px;
     font-weight: bold;
     color: white;
     text-shadow: 1px 1px 2px black;
-    max-width: 80px;
-    word-break: break-word;
+    text-align: center;
+    transform: rotate(22.5deg) translateY(40px);
+    width: 60px;
 }
 
-button {
-    background-color: #ffcc00;
+.spin-button {
+    background-color: #ff3366;
     border: none;
-    padding: 10px 25px;
+    padding: 15px 40px;
     font-size: 18px;
     font-weight: bold;
-    border-radius: 10px;
+    border-radius: 30px;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    transition: background-color 0.3s;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    margin-top: 20px;
 }
 
-button:hover {
-    background-color: #ffd633;
+.spin-button:hover {
+    background-color: #ff1a53;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
 }
 
+.spin-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.spin-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.result-container {
+    margin-top: 25px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px 30px;
+    border-radius: 10px;
+    color: #333;
+    font-size: 18px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    max-width: 80%;
+}
+
+.result-container.visible {
+    opacity: 1;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Animazioni */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(calc(-360deg * 5 - var(--stop-angle))); }
+}
+
+@media (max-width: 480px) {
+    .wheel-container {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .segment-label {
+        font-size: 10px;
+        transform: rotate(22.5deg) translateY(30px);
+        width: 50px;
+    }
+    
+    .spin-button {
+        padding: 12px 30px;
+        font-size: 16px;
+    }
+}
 .hidden {
     display: none;
 }
