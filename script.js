@@ -25,7 +25,7 @@ function drawArrow() {
   const arrowHeight = 20;
   const arrowWidth = 30;
   const centerX = canvas.width / 2;
-  const centerY = canvas.height - arrowHeight / 2; // Freccia sotto la ruota
+  const centerY = canvas.height + arrowHeight / 2; // Freccia sotto la ruota
 
   ctx.beginPath();
   ctx.moveTo(centerX - arrowWidth / 2, centerY); // Punto di partenza
