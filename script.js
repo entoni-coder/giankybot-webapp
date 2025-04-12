@@ -1,69 +1,110 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const wheel = document.getElementById('wheel');
-    const spinButton = document.getElementById('spinButton');
-    const prizeDisplay = document.getElementById('prizeDisplay');
-    const resultContainer = document.getElementById('result');
+    const spinBtn = document.getElementById('spinBtn');
+    const result = document.getElementById('result');
+    const resultContainer = document.getElementById('resultContainer');
+    const wheelSound = document.getElementById('wheelSound');
     const winSound = document.getElementById('winSound');
     const loseSound = document.getElementById('loseSound');
-
-    const prizes = [
-        { value: 0.001, probability: 40, label: "0.001 ETH", color: "#FF6384", sound: winSound },
-        { value: 0.002, probability: 30, label: "0.002 ETH", color: "#36A2EB", sound: winSound },
-        { value: 0.005, probability: 15, label: "0.005 ETH", color: "#FFCE56", sound: winSound },
-        { value: 0.01,  probability: 10, label: "0.01 ETH",  color: "#4BC0C0", sound: winSound },
-        { value: 0.02,  probability: 4,  label: "0.02 ETH",  color: "#9966FF", sound: winSound },
-        { value: 0.05,  probability: 1,  label: "0.05 ETH",  color: "#FF9F40", sound: winSound },
-        { value: 0.1,   probability: 1,  label: "0.1 ETH",   color: "#00FF7F", sound: winSound },
-        { value: 0,     probability: 10, label: "HAI PERSO", color: "#cccccc", sound: loseSound }
+    
+    // Configurazione della ruota
+    const wheelSections = [
+        { text: "10", value: 10, color: "#FF6384", weight: 20 },
+        { text: "20", value: 20, color: "#36A2EB", weight: 15 },
+        { text: "30", value: 30, color: "#FFCE56", weight: 12 },
+        { text: "50", value: 50, color: "#4BC0C0", weight: 8 },
+        { text: "100", value: 100, color: "#9966FF", weight: 5 },
+        { text: "150", value: 150, color: "#FF9F40", weight: 3 },
+        { text: "200", value: 200, color: "#8AC24A", weight: 2 },
+        { text: "You Lost", value: 0, color: "#F44336", weight: 35 }
     ];
-
+    
+    // Crea la ruota visivamente
     function createWheel() {
-        wheel.innerHTML = '<div class="center-hole"></div>';
-        const segmentAngle = 360 / prizes.length;
-
-        prizes.forEach((prize, index) => {
-            const segment = document.createElement('div');
-            segment.className = 'wheel-segment';
-            segment.style.transform = `rotate(${index * segmentAngle}deg)`;
-            segment.style.backgroundColor = prize.color;
-            segment.appendChild(Object.assign(document.createElement('span'), { className: 'segment-label', textContent: prize.label }));
-            wheel.appendChild(segment);
+        const totalWeight = wheelSections.reduce((sum, section) => sum + section.weight, 0);
+        let cumulativeAngle = 0;
+        
+        wheelSections.forEach((section, index) => {
+            const sectionAngle = (section.weight / totalWeight) * 360;
+            const sectionElement = document.createElement('div');
+            sectionElement.className = 'wheel-section';
+            sectionElement.textContent = section.text;
+            sectionElement.style.backgroundColor = section.color;
+            sectionElement.style.transform = `rotate(${cumulativeAngle}deg)`;
+            sectionElement.style.clipPath = `polygon(0 0, 100% 0, 100% 100%)`;
+            
+            // Aggiusta la posizione del testo
+            const textRotation = cumulativeAngle + sectionAngle / 2;
+            sectionElement.style.transform = `rotate(${cumulativeAngle}deg)`;
+            sectionElement.innerHTML = `<span style="transform: rotate(${textRotation}deg); display: inline-block; transform-origin: left center; margin-left: 10px;">${section.text}</span>`;
+            
+            wheel.appendChild(sectionElement);
+            cumulativeAngle += sectionAngle;
         });
     }
-
-    function pickPrize() {
-        const weighted = prizes.flatMap((prize, index) => Array(prize.probability).fill(index));
-        return weighted[Math.floor(Math.random() * weighted.length)];
-    }
-
-    spinButton.addEventListener('click', () => {
-        spinButton.disabled = true;
-        resultContainer.classList.remove('visible');
-        prizeDisplay.classList.remove('prize-pop');
-
-        const winnerIndex = pickPrize();
-        const segmentAngle = 360 / prizes.length;
-        const stopAngle = winnerIndex * segmentAngle + Math.random() * segmentAngle;
-        wheel.style.setProperty('--stop-angle', `${stopAngle}deg`);
-        wheel.style.animation = 'none';
-        void wheel.offsetWidth;
-        wheel.style.animation = 'spin 2.5s cubic-bezier(0.08, 0.82, 0.17, 1) forwards';
-
-        setTimeout(() => {
-            const prize = prizes[winnerIndex];
-            prizeDisplay.textContent = prize.value > 0 ? `HAI VINTO ${prize.label}!` : prize.label;
-            prizeDisplay.className = 'prize-display prize-pop';
-            prizeDisplay.style.background = prize.value > 0 ? 'linear-gradient(135deg, #ffd700, #ff9900)' : 'linear-gradient(135deg, #cccccc, #999999)';
-            prize.sound.currentTime = 0;
-            prize.sound.play();
-            resultContainer.classList.add('visible');
-            spinButton.disabled = false;
-
-            if (window.Telegram && window.Telegram.WebApp) {
-                Telegram.WebApp.sendData(JSON.stringify({ action: "wheel_spin", prize, timestamp: new Date().toISOString() }));
+    
+    // Gira la ruota
+    function spinWheel() {
+        spinBtn.disabled = true;
+        resultContainer.style.display = 'none';
+        
+        // Calcola l'angolo di rotazione basato sulle probabilità
+        const totalWeight = wheelSections.reduce((sum, section) => sum + section.weight, 0);
+        const random = Math.random() * totalWeight;
+        let cumulativeWeight = 0;
+        let selectedIndex = 0;
+        
+        for (let i = 0; i < wheelSections.length; i++) {
+            cumulativeWeight += wheelSections[i].weight;
+            if (random <= cumulativeWeight) {
+                selectedIndex = i;
+                break;
             }
-        }, 2500);
-    });
-
+        }
+        
+        // Calcola l'angolo di rotazione per centrare la sezione selezionata
+        const sectionAngle = (wheelSections[selectedIndex].weight / totalWeight) * 360;
+        const totalAngle = 360 * 5; // 5 giri completi
+        const targetAngle = totalAngle + (360 - (selectedIndex * (360 / wheelSections.length) + sectionAngle / 2));
+        
+        // Animazione della ruota
+        wheel.style.transform = `rotate(${targetAngle}deg)`;
+        wheelSound.currentTime = 0;
+        wheelSound.play();
+        
+        // Mostra il risultato dopo l'animazione
+        setTimeout(() => {
+            const selectedSection = wheelSections[selectedIndex];
+            result.textContent = selectedSection.text;
+            resultContainer.style.display = 'block';
+            
+            if (selectedSection.value > 0) {
+                result.style.color = "#4CAF50";
+                result.style.backgroundColor = "#E8F5E9";
+                winSound.play();
+                
+                // Invia la vincita al wallet (simulato)
+                sendToWallet(selectedSection.value);
+            } else {
+                result.style.color = "#F44336";
+                result.style.backgroundColor = "#FFEBEE";
+                loseSound.play();
+            }
+            
+            spinBtn.disabled = false;
+        }, 4000);
+    }
+    
+    // Funzione simulata per inviare le vincite al wallet
+    function sendToWallet(amount) {
+        console.log(`Invio di ${amount} al wallet...`);
+        // Qui andrebbe il codice reale per connettersi al wallet e inviare l'importo
+        // Per una demo reale, dovresti integrare con un servizio di wallet come MetaMask
+    }
+    
+    // Inizializza la ruota
     createWheel();
+    
+    // Aggiungi l'evento al pulsante
+    spinBtn.addEventListener('click', spinWheel);
 });
