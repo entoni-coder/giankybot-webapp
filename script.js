@@ -1,22 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
     const wheel = document.getElementById('wheel');
     const spinButton = document.getElementById('spinButton');
-    const prizeText = document.getElementById('prizeText');
+    const prizeDisplay = document.getElementById('prizeDisplay');
     const resultContainer = document.getElementById('result');
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
 
     const prizes = [
-        { value: 0.001, probability: 40, label: "0.001 ETH", color: "#FF6384" },
-        { value: 0.002, probability: 30, label: "0.002 ETH", color: "#36A2EB" },
-        { value: 0.005, probability: 15, label: "0.005 ETH", color: "#FFCE56" },
-        { value: 0.01,  probability: 10, label: "0.01 ETH",  color: "#4BC0C0" },
-        { value: 0.02,  probability: 4,  label: "0.02 ETH",  color: "#9966FF" },
-        { value: 0.05,  probability: 1,  label: "0.05 ETH",  color: "#FF9F40" },
-        { value: 0.1,   probability: 1,  label: "0.1 ETH",   color: "#00FF7F" },
-        { value: 0,     probability: 10, label: "HAI PERSO", color: "#cccccc" }
+        { value: 0.001, probability: 40, label: "0.001 ETH", color: "#FF6384", sound: winSound },
+        { value: 0.002, probability: 30, label: "0.002 ETH", color: "#36A2EB", sound: winSound },
+        { value: 0.005, probability: 15, label: "0.005 ETH", color: "#FFCE56", sound: winSound },
+        { value: 0.01,  probability: 10, label: "0.01 ETH",  color: "#4BC0C0", sound: winSound },
+        { value: 0.02,  probability: 4,  label: "0.02 ETH",  color: "#9966FF", sound: winSound },
+        { value: 0.05,  probability: 1,  label: "0.05 ETH",  color: "#FF9F40", sound: winSound },
+        { value: 0.1,   probability: 1,  label: "0.1 ETH",   color: "#00FF7F", sound: winSound },
+        { value: 0,     probability: 10, label: "HAI PERSO", color: "#cccccc", sound: loseSound }
     ];
 
     function createWheel() {
-        wheel.innerHTML = '';
+        wheel.innerHTML = '<div class="center-hole"></div>';
         const segmentAngle = 360 / prizes.length;
 
         prizes.forEach((prize, index) => {
@@ -47,22 +49,26 @@ document.addEventListener('DOMContentLoaded', () => {
     spinButton.addEventListener('click', () => {
         spinButton.disabled = true;
         resultContainer.classList.remove('visible');
-        
+        prizeDisplay.classList.remove('prize-pop');
+
         const winnerIndex = pickPrize();
         const segmentAngle = 360 / prizes.length;
         const stopAngle = winnerIndex * segmentAngle + Math.random() * segmentAngle;
         
-        // Imposta l'angolo di stop come variabile CSS
         wheel.style.setProperty('--stop-angle', `${stopAngle}deg`);
-        
-        // Applica l'animazione
         wheel.style.animation = 'none';
-        void wheel.offsetWidth; // Trigger reflow
+        void wheel.offsetWidth;
         wheel.style.animation = 'spin 3s cubic-bezier(0.17, 0.89, 0.32, 1) forwards';
         
         setTimeout(() => {
             const prize = prizes[winnerIndex];
-            prizeText.textContent = prize.value > 0 ? `🎉 ${prize.label} 🎉` : `😢 ${prize.label}`;
+            prizeDisplay.textContent = prize.value > 0 ? `HAI VINTO ${prize.label}` : prize.label;
+            prizeDisplay.className = prize.value > 0 ? 'prize-display prize-pop' : 'prize-display prize-pop lost';
+            
+            // Riproduci il suono appropriato
+            prize.sound.currentTime = 0;
+            prize.sound.play();
+            
             resultContainer.classList.add('visible');
             spinButton.disabled = false;
             
