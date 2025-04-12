@@ -9,12 +9,14 @@ const loseSound = document.getElementById("loseSound");
 
 // Configurazione con probabilità aggiornata per Giankybotes
 const wheelSections = [
-  { text: "500", value: 500, color: "#FFCE56", weight: 1 },
-  { text: "1000", value: 1000, color: "#4BC0C0", weight: 1 },
-  { text: "200", value: 200, color: "#8AC24A", weight: 1 },
-  { text: "You Lost", value: 0, color: "#F44336", weight: 0.5 },
-  { text: "You Lost", value: 0, color: "#F44336", weight: 1.0 },
-  { text: "You Lost", value: 0, color: "#F44336", weight: 0.5 }
+    { text: "10", value: 0, color: "#F44336", weight: 30 },
+  { text: "30", value: 0, color: "#F44336", weight: 20 },
+  { text: "50", value: 500, color: "#FFCE56", weight: 7 },
+  { text: "200", value: 1000, color: "#4BC0C0", weight: 5 },
+  { text: "500", value: 200, color: "#8AC24A", weight: 2 },
+  { text: "1000", value: 200, color: "#8AC24A", weight: 1 },
+  { text: "You Lost", value: 0, color: "#F44336", weight: 10 }
+
 ];
 
 let currentAngle = 0;
