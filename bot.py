@@ -15,6 +15,8 @@ from telegram.ext import (
     ConversationHandler
 )
 from dotenv import load_dotenv
+import random
+import secrets
 
 # Configurazione
 load_dotenv()
@@ -52,6 +54,9 @@ def init_db():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
+        first_name TEXT,
+        last_name TEXT,
+        phone TEXT,
         wallet TEXT NOT NULL,
         balance INTEGER DEFAULT 0,
         spins INTEGER DEFAULT 0,
@@ -87,7 +92,7 @@ def get_user(user_id):
     conn.close()
     
     if user:
-        columns = ['user_id', 'wallet', 'balance', 'spins', 'referral_code', 'username', 'registered_at']
+        columns = ['user_id', 'first_name', 'last_name', 'phone', 'wallet', 'balance', 'spins', 'referral_code', 'username', 'registered_at']
         return dict(zip(columns, user))
     return None
 
@@ -127,16 +132,37 @@ def create_transaction(user_id, amount, tx_type):
 
 # Funzioni principali del bot
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    welcome_message = (
-        "🎉 *Welcome to GiankyGame!* 🎉\n\n"
-        "To get started:\n"
-        "➡️ Click /register to sign up\n"
-        "🎡 Click /spin to spin the wheel\n"
-        "🛒 Click /buyspin to buy more spins\n\n"
-        "You'll get 3 FREE spins after registration!"
-    )
+    user_id = update.effective_user.id
+    user = get_user(user_id)
     
-    await update.message.reply_text(welcome_message, parse_mode='Markdown')
+    if not user:
+        welcome_message = (
+            "👋 *Welcome to GiankyGame!* 👋\n\n"
+            "To get started:\n"
+            "➡️ Click /register to sign up\n\n"
+            "After registration you'll get:\n"
+            "🎁 3 FREE spins\n"
+            "💰 Bonus 100 GKY"
+        )
+        
+        await update.message.reply_text(welcome_message, parse_mode='Markdown')
+    else:
+        keyboard = [
+            [InlineKeyboardButton("🎡 Spin the Wheel", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
+            [InlineKeyboardButton("🛒 Buy More Spins", callback_data='buy_spins')],
+            [InlineKeyboardButton("📲 Invite Friends", callback_data='get_referral')],
+            [InlineKeyboardButton("✅ Complete Tasks", callback_data='complete_task')]
+        ]
+        
+        await update.message.reply_text(
+            f"🎰 *Welcome back, {user.get('first_name', 'Player')}!*\n\n"
+            f"💰 Balance: `{user['balance']} GKY`\n"
+            f"🎫 Spins left: `{user['spins']}`\n\n"
+            "What would you like to do?",
+            parse_mode='Markdown',
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    
     return ConversationHandler.END
 
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -147,47 +173,95 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
     
     await update.message.reply_text(
-        "📝 *Registration*\n\n"
-        "Please send me your wallet address to receive prizes:",
+        "📝 *Registration - Step 1/4*\n\n"
+        "Please send me your *first name*:",
         parse_mode='Markdown'
     )
+    context.user_data['registration_step'] = 'first_name'
     return REGISTER
 
-async def handle_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    wallet = update.message.text.strip()
+    text = update.message.text.strip()
+    step = context.user_data.get('registration_step')
     
-    if get_user(user_id):
-        await update.message.reply_text("ℹ️ You're already registered! Use /spin to play.")
+    if not step:
+        await update.message.reply_text("Please use /register to start registration.")
         return ConversationHandler.END
     
-    # Basic wallet validation
-    if not wallet.startswith('0x') or len(wallet) != 42:
-        await update.message.reply_text("❌ Invalid wallet address. Please send a valid Ethereum address (starts with 0x, 42 chars).")
+    if step == 'first_name':
+        context.user_data['first_name'] = text
+        context.user_data['registration_step'] = 'last_name'
+        await update.message.reply_text(
+            "📝 *Registration - Step 2/4*\n\n"
+            "Now send me your *last name*:",
+            parse_mode='Markdown'
+        )
         return REGISTER
     
-    referral_code = hashlib.sha256(f"{user_id}{wallet}".encode()).hexdigest()[:8].upper()
+    elif step == 'last_name':
+        context.user_data['last_name'] = text
+        context.user_data['registration_step'] = 'phone'
+        await update.message.reply_text(
+            "📝 *Registration - Step 3/4*\n\n"
+            "Now send me your *phone number*:",
+            parse_mode='Markdown'
+        )
+        return REGISTER
     
-    user_data = {
-        'user_id': user_id,
-        'wallet': wallet,
-        'spins': 3,  # 3 free spins
-        'referral_code': referral_code,
-        'username': update.effective_user.username or str(user_id)
-    }
+    elif step == 'phone':
+        if not text.isdigit():
+            await update.message.reply_text("❌ Invalid phone number. Please enter only digits.")
+            return REGISTER
+        
+        context.user_data['phone'] = text
+        context.user_data['registration_step'] = 'wallet'
+        await update.message.reply_text(
+            "📝 *Registration - Step 4/4*\n\n"
+            "Finally, send me your *wallet address* to receive prizes:",
+            parse_mode='Markdown'
+        )
+        return REGISTER
     
-    create_user(user_data)
-    
-    await update.message.reply_text(
-        "✅ *Registration complete!*\n\n"
-        f"🔑 Your referral code: `{referral_code}`\n"
-        "🎁 You received 3 FREE spins!\n\n"
-        "Now you can:\n"
-        "🎡 Spin the wheel with /spin\n"
-        "🛒 Buy more spins with /buyspin",
-        parse_mode='Markdown'
-    )
-    return ConversationHandler.END
+    elif step == 'wallet':
+        # Basic wallet validation
+        if not text.startswith('0x') or len(text) != 42:
+            await update.message.reply_text("❌ Invalid wallet address. Please send a valid Ethereum address (starts with 0x, 42 chars).")
+            return REGISTER
+        
+        referral_code = hashlib.sha256(f"{user_id}{text}".encode()).hexdigest()[:8].upper()
+        
+        user_data = {
+            'user_id': user_id,
+            'first_name': context.user_data.get('first_name'),
+            'last_name': context.user_data.get('last_name'),
+            'phone': context.user_data.get('phone'),
+            'wallet': text,
+            'balance': 100,  # Starting bonus
+            'spins': 3,     # 3 free spins
+            'referral_code': referral_code,
+            'username': update.effective_user.username or str(user_id)
+        }
+        
+        create_user(user_data)
+        del context.user_data['registration_step']
+        
+        await update.message.reply_text(
+            "✅ *Registration complete!*\n\n"
+            f"👋 Welcome, {user_data['first_name']}!\n"
+            f"🔑 Your referral code: `{referral_code}`\n\n"
+            "🎁 You received:\n"
+            "💰 100 GKY bonus\n"
+            "🎫 3 FREE spins\n\n"
+            "Now you can:\n"
+            "🎡 Spin the wheel with /spin\n"
+            "🛒 Buy more spins with /buyspin",
+            parse_mode='Markdown',
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("🎡 SPIN NOW", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))
+            ]])
+        )
+        return ConversationHandler.END
 
 async def spin_wheel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -244,20 +318,60 @@ async def buy_spins(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return BUY_SPINS
 
+async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        data = json.loads(update.effective_message.web_app_data.data)
+        prize = data['prize']
+        
+        user_id = update.effective_user.id
+        user = get_user(user_id)
+        
+        if not user:
+            await update.message.reply_text("⚠️ Please /register first!")
+            return
+        
+        if user['spins'] <= 0:
+            await update.message.reply_text("❌ You don't have any spins left!")
+            return
+        
+        # Update user balance and spins
+        new_balance = user['balance'] + prize['value']
+        new_spins = user['spins'] - 1
+        
+        update_user(user_id, {
+            'balance': new_balance,
+            'spins': new_spins
+        })
+        
+        create_transaction(user_id, prize['value'], 'wheel_prize')
+        
+        await update.message.reply_text(
+            f"🎉 *You won {prize['label']}!*\n\n"
+            f"💰 New balance: `{new_balance} GKY`\n"
+            f"🎫 Spins left: `{new_spins}`\n\n"
+            "Keep playing to win more!",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Error handling webapp data: {str(e)}")
+        await update.message.reply_text("❌ An error occurred. Please try again.")
+
 # Gestione dei callback
 async def handle_buy_spins(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    await query.answer()
+    
     action = query.data
     
     if action == 'back':
-        await update.message.reply_text("🔙 Going back...")
+        await query.edit_message_text("🔙 Going back...")
         return ConversationHandler.END
     
     user_id = update.effective_user.id
     user = get_user(user_id)
     
     if not user:
-        await query.answer("⚠️ You need to register first.")
+        await query.edit_message_text("⚠️ You need to register first.")
         return
     
     if action == 'buy_3':
@@ -266,36 +380,79 @@ async def handle_buy_spins(update: Update, context: ContextTypes.DEFAULT_TYPE):
         selected_spin = SPIN_PACKAGES['5_spins']
     elif action == 'buy_10':
         selected_spin = SPIN_PACKAGES['10_spins']
-    
-    if user['balance'] < selected_spin['price']:
-        await query.answer("❌ You don't have enough funds to buy this package.")
+    else:
+        await query.edit_message_text("❌ Invalid selection.")
         return
     
-    # Create transaction for purchasing spins
-    create_transaction(user_id, selected_spin['price'], 'spin_purchase')
-    update_user(user_id, {'spins': user['spins'] + selected_spin['spins']})
+    if user['balance'] < selected_spin['price']:
+        await query.edit_message_text("❌ You don't have enough funds to buy this package.")
+        return
     
-    await query.answer(f"✅ You've successfully bought {selected_spin['spins']} spins for {selected_spin['price']} GKY!")
+    # Update user balance and spins
+    new_balance = user['balance'] - selected_spin['price']
+    new_spins = user['spins'] + selected_spin['spins']
+    
+    update_user(user_id, {
+        'balance': new_balance,
+        'spins': new_spins
+    })
+    
+    create_transaction(user_id, selected_spin['price'], 'spin_purchase')
+    
+    await query.edit_message_text(
+        f"✅ *Purchase successful!*\n\n"
+        f"You've bought {selected_spin['spins']} spins for {selected_spin['price']} GKY.\n\n"
+        f"💰 New balance: `{new_balance} GKY`\n"
+        f"🎫 Total spins: `{new_spins}`",
+        parse_mode='Markdown'
+    )
     
     return ConversationHandler.END
+
+async def get_referral(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = get_user(user_id)
+    
+    if not user:
+        await update.callback_query.answer("Please register first!", show_alert=True)
+        return
+    
+    referral_link = f"https://t.me/{context.bot.username}?start={user['referral_code']}"
+    
+    await update.callback_query.message.reply_text(
+        f"📢 *Invite Friends & Earn!*\n\n"
+        f"Share your referral link and earn 50 GKY for each friend who registers and spins!\n\n"
+        f"🔗 Your referral link:\n`{referral_link}`\n\n"
+        f"📌 Your referral code: `{user['referral_code']}`",
+        parse_mode='Markdown'
+    )
 
 # Set up bot handlers
 def main():
     application = Application.builder().token(os.getenv('TELEGRAM_TOKEN')).build()
     
-    conversation_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start), CommandHandler('register', register), CommandHandler('spin', spin_wheel), CommandHandler('buyspin', buy_spins)],
+    # Conversation handler for registration
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('register', register)],
         states={
-            REGISTER: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_wallet)],
-            BUY_SPINS: [CallbackQueryHandler(handle_buy_spins)],
+            REGISTER: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_registration)],
         },
         fallbacks=[],
     )
     
-    application.add_handler(conversation_handler)
+    # Add handlers
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(conv_handler)
+    application.add_handler(CommandHandler('spin', spin_wheel))
+    application.add_handler(CallbackQueryHandler(handle_buy_spins, pattern='^buy_'))
+    application.add_handler(CallbackQueryHandler(get_referral, pattern='^get_referral$'))
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
     
+    # Buy spins command handler
+    application.add_handler(CommandHandler('buyspin', buy_spins))
+    
+    # Run the bot
     application.run_polling()
 
 if __name__ == '__main__':
     main()
-
