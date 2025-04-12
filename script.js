@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     timestamp: new Date().toISOString()
                 }));
             }
-        }, 3000);
+        }, 3000);  // Dopo 3 secondi, mostra il risultato e il suono
     });
 
     createWheel();
