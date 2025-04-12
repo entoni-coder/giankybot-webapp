@@ -7,17 +7,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const winSound = document.getElementById('winSound');
     const loseSound = document.getElementById('loseSound');
     
-    // Configurazione della ruota con probabilità maggiori per valori bassi
-    const wheelSections = [
-        { text: "10", value: 10, color: "#FF6384", weight: 30 },  // 30% probabilità
-        { text: "20", value: 20, color: "#36A2EB", weight: 25 },  // 25% probabilità
-        { text: "30", value: 30, color: "#FFCE56", weight: 20 },  // 20% probabilità
-        { text: "50", value: 50, color: "#4BC0C0", weight: 10 },  // 10% probabilità
-        { text: "100", value: 100, color: "#9966FF", weight: 7 }, // 7% probabilità
-        { text: "150", value: 150, color: "#FF9F40", weight: 5 }, // 5% probabilità
-        { text: "200", value: 200, color: "#8AC24A", weight: 2 }, // 2% probabilità
-        { text: "You Lost", value: 0, color: "#F44336", weight: 1 } // 1% probabilità
-    ];
+    // Configurazione della ruota con probabilità maggiori per valori bassi 
+const wheelSections = [
+    { text: "10", value: 10, color: "#FF6384", weight: 40 },  // 40% probabilità
+    { text: "20", value: 20, color: "#36A2EB", weight: 30 },  // 30% probabilità
+    { text: "30", value: 30, color: "#FFCE56", weight: 15 },  // 15% probabilità
+    { text: "50", value: 50, color: "#4BC0C0", weight: 7 },   // 7% probabilità
+    { text: "100", value: 100, color: "#9966FF", weight: 5 },  // 5% probabilità
+    { text: "150", value: 150, color: "#FF9F40", weight: 2 },  // 2% probabilità
+    { text: "200", value: 200, color: "#8AC24A", weight: 1 },  // 1% probabilità
+    { text: "You Lost", value: 0, color: "#F44336", weight: 10 } // 10% probabilità di perdere
+];
+
     
     // Crea la ruota visivamente con spicchi ordinati
     function createWheel() {
