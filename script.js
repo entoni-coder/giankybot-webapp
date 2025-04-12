@@ -58,14 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
         wheel.style.setProperty('--stop-angle', `${stopAngle}deg`);
         wheel.style.animation = 'none';
         void wheel.offsetWidth;
-        wheel.style.animation = 'spin 3s cubic-bezier(0.17, 0.89, 0.32, 1) forwards';
+        wheel.style.animation = 'spin 2.5s cubic-bezier(0.08, 0.82, 0.17, 1) forwards';
         
         setTimeout(() => {
             const prize = prizes[winnerIndex];
-            prizeDisplay.textContent = prize.value > 0 ? `HAI VINTO ${prize.label}` : prize.label;
-            prizeDisplay.className = prize.value > 0 ? 'prize-display prize-pop' : 'prize-display prize-pop lost';
+            prizeDisplay.textContent = prize.value > 0 ? `HAI VINTO ${prize.label}!` : prize.label;
+            prizeDisplay.className = 'prize-display prize-pop';
             
-            // Riproduci il suono appropriato
+            if(prize.value > 0) {
+                prizeDisplay.style.background = 'linear-gradient(135deg, #ffd700, #ff9900)';
+            } else {
+                prizeDisplay.style.background = 'linear-gradient(135deg, #cccccc, #999999)';
+            }
+            
             prize.sound.currentTime = 0;
             prize.sound.play();
             
@@ -79,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     timestamp: new Date().toISOString()
                 }));
             }
-        }, 3000);  // Dopo 3 secondi, mostra il risultato e il suono
+        }, 2500);
     });
 
     createWheel();
