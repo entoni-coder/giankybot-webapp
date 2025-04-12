@@ -28,7 +28,7 @@ function drawArrow() {
   const centerY = canvas.height - arrowHeight / 2; // Freccia sotto la ruota
 
   ctx.beginPath();
-  ctx.moveTo(centerX + arrowWidth / 2, centerY); // Punto di partenza
+  ctx.moveTo(centerX - arrowWidth / 2, centerY); // Punto di partenza
   ctx.lineTo(centerX + arrowWidth / 2, centerY); // Punta della freccia
   ctx.lineTo(centerX, centerY + arrowHeight); // Punto finale (freccia verso il basso)
   ctx.closePath();
@@ -134,3 +134,4 @@ function showResult(index) {
 // Inizializza
 drawWheel();
 spinBtn.addEventListener("click", spinWheel);
+
