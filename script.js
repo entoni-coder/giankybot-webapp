@@ -78,4 +78,3 @@ document.addEventListener('DOMContentLoaded', () => {
     createWheel();
 });
 
-
