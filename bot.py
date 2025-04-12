@@ -254,9 +254,9 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("⚠️ Si è verificato un errore. Riprova.")
 def main():
     # Carica il token dal file .env
-    TOKEN = os.getenv("BOT_TOKEN")
+    TOKEN = os.getenv("TELEGRAM_TOKEN")
     if not TOKEN:
-        raise ValueError("BOT_TOKEN non trovato nel file .env!")
+        raise ValueError("TELEGRAM_TOKEN non trovato nel file .env!")
 
     app = Application.builder().token(TOKEN).build()
 
