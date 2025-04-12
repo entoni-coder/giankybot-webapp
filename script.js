@@ -25,11 +25,11 @@ function drawArrow() {
   const arrowHeight = 20;
   const arrowWidth = 30;
   const centerX = canvas.width / 2;
-  const centerY = canvas.height + arrowHeight / 2; // Freccia sotto la ruota
+  const centerY = canvas.height - arrowHeight / 2; // Freccia sotto la ruota
 
   ctx.beginPath();
   ctx.moveTo(centerX - arrowWidth / 2, centerY); // Punto di partenza
-  ctx.lineTo(centerX + arrowWidth / 2, centerY); // Punta della freccia
+  ctx.lineTo(centerX - arrowWidth / 2, centerY); // Punta della freccia
   ctx.lineTo(centerX, centerY + arrowHeight); // Punto finale (freccia verso il basso)
   ctx.closePath();
   ctx.fillStyle = "black"; // Colore della freccia
