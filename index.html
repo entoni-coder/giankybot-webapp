@@ -2,27 +2,41 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Ruota della Fortuna</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giankybotes - Ruota della Fortuna</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="casino-background">
-        <div class="container">
-            <div class="wheel-container">
+    <div class="container">
+        <h1>Giankybotes</h1>
+        <h2>Gira la ruota</h2>
+        
+        <div class="wheel-container">
+            <div class="wheel" id="wheel">
+                <div class="wheel-center"></div>
                 <div class="pointer"></div>
-                <div class="wheel" id="wheel">
-                    <div class="center-hole"></div>
-                </div>
             </div>
-            <button id="spinButton" class="spin-button">GIRA LA ROUTA</button>
-            <div id="result" class="result-container hidden">
-                <div class="prize-display" id="prizeDisplay"></div>
-            </div>
-            <audio id="winSound" src="win-sound.mp3" preload="auto"></audio>
-            <audio id="loseSound" src="lose-sound.mp3" preload="auto"></audio>
+        </div>
+        
+        <button class="spin-btn" id="spinBtn">GIRA LA RUOTA</button>
+        
+        <div class="result-container" id="resultContainer">
+            <div class="result" id="result"></div>
+        </div>
+        
+        <div class="buttons">
+            <button class="action-btn">Connetti Wallet</button>
+            <button class="action-btn">Acquista Extra Tiri</button>
+            <button class="action-btn">Ottieni Referral</button>
+            <button class="action-btn">Completa Task</button>
         </div>
     </div>
+    
+    <audio id="wheelSound" src="https://www.soundjay.com/mechanical/sounds/spinner-1.mp3" preload="auto"></audio>
+    <audio id="winSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
+    <audio id="loseSound" src="https://www.soundjay.com/human/sounds/sad-trombone-01.mp3" preload="auto"></audio>
+    
     <script src="script.js"></script>
 </body>
 </html>
