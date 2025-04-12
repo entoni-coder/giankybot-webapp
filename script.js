@@ -11,26 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
         { value: 0.01,  probability: 10, label: "0.01 ETH",  color: "#4BC0C0" },
         { value: 0.02,  probability: 4,  label: "0.02 ETH",  color: "#9966FF" },
         { value: 0.05,  probability: 1,  label: "0.05 ETH",  color: "#FF9F40" },
-        { value: 0,     probability: 10, label: "YOU LOST", color: "#cccccc" }, // Spicchio perdita
-        { value: 0.01,  probability: 10, label: "0.01 ETH",  color: "#FF6347" } // Aggiunto un altro premio
+        { value: 0.1,   probability: 1,  label: "0.1 ETH",   color: "#00FF7F" },
+        { value: 0,     probability: 10, label: "HAI PERSO", color: "#cccccc" }
     ];
 
     function createWheel() {
         wheel.innerHTML = '';
-        const total = prizes.length;
-        const segmentAngle = 360 / total;
+        const segmentAngle = 360 / prizes.length;
 
         prizes.forEach((prize, index) => {
             const segment = document.createElement('div');
             segment.className = 'wheel-segment';
-            segment.style.transform = `rotate(${index * segmentAngle}deg) skewY(-${90 - segmentAngle}deg)`;
+            segment.style.transform = `rotate(${index * segmentAngle}deg)`;
             segment.style.backgroundColor = prize.color;
-
+            
             const label = document.createElement('span');
-            label.textContent = prize.label;
             label.className = 'segment-label';
-            label.style.transform = `skewY(${90 - segmentAngle}deg) rotate(${segmentAngle / 2}deg)`;
-
+            label.textContent = prize.label;
+            
             segment.appendChild(label);
             wheel.appendChild(segment);
         });
@@ -43,32 +41,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 weighted.push(index);
             }
         });
-        const randomIndex = Math.floor(Math.random() * weighted.length);
-        return weighted[randomIndex];
+        return weighted[Math.floor(Math.random() * weighted.length)];
     }
 
     spinButton.addEventListener('click', () => {
         spinButton.disabled = true;
-        resultContainer.classList.add('hidden');
-
+        resultContainer.classList.remove('visible');
+        
         const winnerIndex = pickPrize();
-        const degreesPerSegment = 360 / prizes.length;
-        const randomOffset = Math.floor(Math.random() * degreesPerSegment);
-        const spinDegrees = 360 * 5 + (360 - (winnerIndex * degreesPerSegment)) - randomOffset;
-
-        wheel.style.transition = 'transform 5s ease-out';
-        wheel.style.transform = `rotate(${spinDegrees}deg)`;
-
+        const segmentAngle = 360 / prizes.length;
+        const stopAngle = winnerIndex * segmentAngle + Math.random() * segmentAngle;
+        
+        // Imposta l'angolo di stop come variabile CSS
+        wheel.style.setProperty('--stop-angle', `${stopAngle}deg`);
+        
+        // Applica l'animazione
+        wheel.style.animation = 'none';
+        void wheel.offsetWidth; // Trigger reflow
+        wheel.style.animation = 'spin 3s cubic-bezier(0.17, 0.89, 0.32, 1) forwards';
+        
         setTimeout(() => {
             const prize = prizes[winnerIndex];
-            if (prize.value > 0) {
-                prizeText.textContent = `🎉 HAI VINTO ${prize.label}!`;
-            } else {
-                prizeText.textContent = `😢 ${prize.label}`;
-            }
-            resultContainer.classList.remove('hidden');
+            prizeText.textContent = prize.value > 0 ? `🎉 ${prize.label} 🎉` : `😢 ${prize.label}`;
+            resultContainer.classList.add('visible');
             spinButton.disabled = false;
-        }, 5000);
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                Telegram.WebApp.sendData(JSON.stringify({
+                    action: "wheel_spin",
+                    prize: prize,
+                    timestamp: new Date().toISOString()
+                }));
+            }
+        }, 3000);
     });
 
     createWheel();
