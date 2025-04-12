@@ -130,3 +130,4 @@ function showResult(index) {
     loseSound.play();
   }
 }
+
