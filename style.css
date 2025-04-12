@@ -1,6 +1,7 @@
 body {
     margin: 0;
     overflow: hidden;
+    font-family: sans-serif;
 }
 
 .casino-background {
@@ -64,4 +65,50 @@ body {
     filter: drop-shadow(0 0 5px gold);
 }
 
-/* Resto del CSS come prima... */
+.wheel-segment {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    top: 0;
+    left: 50%;
+    transform-origin: 0% 100%;
+    clip-path: polygon(0% 100%, 100% 0%, 100% 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding-top: 20px;
+    box-sizing: border-box;
+    border-right: 1px solid rgba(255,255,255,0.3);
+}
+
+.wheel-segment span {
+    transform: rotate(-90deg);
+    transform-origin: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    max-width: 80px;
+    word-break: break-word;
+}
+
+button {
+    background-color: #ffcc00;
+    border: none;
+    padding: 10px 25px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #ffd633;
+}
+
+.hidden {
+    display: none;
+}
