@@ -21,6 +21,21 @@ const wheelSections = [
 
 let currentAngle = 0;
 
+function drawArrow() {
+  const arrowHeight = 20;
+  const arrowWidth = 30;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height - arrowHeight / 2;
+
+  ctx.beginPath();
+  ctx.moveTo(centerX - arrowWidth / 2, centerY); // Punto di partenza
+  ctx.lineTo(centerX + arrowWidth / 2, centerY); // Punta della freccia
+  ctx.lineTo(centerX, centerY + arrowHeight); // Punto finale
+  ctx.closePath();
+  ctx.fillStyle = "black"; // Colore della freccia
+  ctx.fill();
+}
+
 function drawWheel() {
   const radius = canvas.width / 2;
   const centerX = canvas.width / 2;
@@ -52,6 +67,9 @@ function drawWheel() {
     ctx.fillText(wheelSections[i].text, radius - 10, 10);
     ctx.restore();
   }
+
+  // Disegna la freccia sotto la ruota
+  drawArrow();
 }
 
 function spinWheel() {
