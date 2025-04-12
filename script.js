@@ -121,7 +121,7 @@ function getWeightedRandomIndex() {
 
 function showResult(index) {
   const selected = wheelSections[index];
-  result.textContent = Hai vinto: ${selected.text};
+  result.textContent = `Hai vinto: ${selected.text}`;
   if (selected.value > 0) {
     result.style.color = "#4CAF50";
     winSound.play();
@@ -134,5 +134,6 @@ function showResult(index) {
 // Inizializza
 drawWheel();
 spinBtn.addEventListener("click", spinWheel);
+
 
 
