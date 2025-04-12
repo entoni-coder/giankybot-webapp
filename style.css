@@ -11,53 +11,74 @@ body {
 .container {
   text-align: center;
   background: white;
-  padding: 20px;
+  padding: 30px;
   border-radius: 20px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  max-width: 500px;
+  width: 90%;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 10px;
 }
 
 .wheel-container {
   position: relative;
-  margin: 20px 0;
-}
-
-.pointer {
-  width: 0;
-  height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-bottom: 30px solid black;
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
+  margin: 20px auto;
+  width: 400px;
+  height: 400px;
 }
 
 canvas {
   border: 8px solid #333;
   border-radius: 50%;
+  display: block;
+  background: white;
 }
 
 #spinBtn {
   padding: 12px 25px;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: bold;
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 20px;
   transition: 0.3s;
+  text-transform: uppercase;
 }
 
 #spinBtn:hover {
   background-color: #45a049;
+  transform: scale(1.05);
+}
+
+#spinBtn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
 }
 
 #result {
-  margin-top: 15px;
-  font-size: 18px;
+  margin-top: 20px;
+  font-size: 20px;
   font-weight: bold;
+  min-height: 27px;
 }
 
+.wheel-container::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 30px solid #ff0000;
+  z-index: 10;
+}
