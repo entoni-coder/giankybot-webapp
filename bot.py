@@ -192,7 +192,6 @@ async def handle_wallet_or_referral(update: Update, context: ContextTypes.DEFAUL
     action = context.user_data.get('action')
     
     if action == 'register':
-        # In a real implementation, validate wallet address format
         referral_code = hashlib.sha256(f"{user_id}{text}".encode()).hexdigest()[:8].upper()
         
         user_data = {
@@ -212,10 +211,10 @@ async def handle_wallet_or_referral(update: Update, context: ContextTypes.DEFAUL
             f"🎫 You received 3 free spins!\n"
             f"💰 Start spinning to win GiankyCoin (GKY)!\n\n"
             f"Share your code with friends to get additional spins!",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🎰 Spin the wheel", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
-                [InlineKeyboardButton("💳 Buy more spins", callback_data='buy_spins')]
-            ])
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("🎰 Spin the wheel", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL'))),
+                InlineKeyboardButton("💳 Buy more spins", callback_data='buy_spins')
+            ]])
         )
         await show_main_menu(update, context)
         return ConversationHandler.END
@@ -260,38 +259,20 @@ async def handle_wallet_after_referral(update: Update, context: ContextTypes.DEF
     }
     
     create_user(user_data)
+    update_user(referrer_id, {'total_referrals': get_user(referrer_id)['total_referrals'] + 1})
     
-    # Update referrer's spins and referral count
-    conn = sqlite3.connect('giankybot.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-    UPDATE users 
-    SET spins = spins + 2,  # Give 2 spins for successful referral
-        total_referrals = total_referrals + 1 
-    WHERE user_id = ?
-    ''', (referrer_id,))
-    conn.commit()
-    conn.close()
-    
-    await context.bot.send_message(
-        chat_id=referrer_id,
-        text=f"🎉 You have a new referral! @{update.effective_user.username} used your code.\n"
-             f"🎫 You received 2 additional spins. You now have {get_user(referrer_id)['spins']} spins available!"
-    )
+    create_transaction(user_id, 0, "deposit")
     
     await update.message.reply_text(
-        f"🎉 Registration complete!\n\n"
-        f"🔑 Your referral code: {referral_code}\n"
-        f"🎫 You received 5 free spins (referral bonus)!\n"
+        f"🎉 You're successfully registered!\n\n"
+        f"🎁 You received 5 spins for using a referral code!\n"
         f"💰 Start spinning to win GiankyCoin (GKY)!\n\n"
-        f"Share your code with friends to get even more spins!",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🎰 Spin the wheel", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
-            [InlineKeyboardButton("💳 Buy more spins", callback_data='buy_spins')]
-        ])
+        f"Share your code with friends to get more spins!",
+        reply_markup=InlineKeyboardMarkup([[
+            InlineKeyboardButton("🎰 Spin the wheel", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL'))),
+            InlineKeyboardButton("💳 Buy more spins", callback_data='buy_spins')
+        ]])
     )
-    
-    await show_main_menu(update, context)
     return ConversationHandler.END
 
 async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -299,226 +280,39 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_user(user_id)
     
     if not user:
-        await start(update, context)
+        await update.message.reply_text("You're not registered. Please use /start to begin.")
         return
-    
-    referred_by = ""
-    if user['referred_by']:
-        referrer = get_user(user['referred_by'])
-        referred_by = f"\n👥 Referred by: @{referrer.get('username', 'unknown')}"
     
     keyboard = [
         [InlineKeyboardButton("🎰 Spin the wheel", web_app=WebAppInfo(url=os.getenv('WEBAPP_URL')))],
-        [
-            InlineKeyboardButton("👛 My wallet", callback_data='my_wallet'),
-            InlineKeyboardButton("📊 Statistics", callback_data='stats')
-        ],
-        [InlineKeyboardButton("💳 Buy more spins", callback_data='buy_spins')]
+        [InlineKeyboardButton("💳 Buy Spins", callback_data='buy_spins')],
+        [InlineKeyboardButton("👥 Invite Friends", callback_data='invite')],
     ]
     
-    await context.bot.send_message(
-        chat_id=user_id,
-        text=f"🎱 Welcome back, @{user['username']}!\n\n"
-             f"💰 Balance: {user['balance']} GKY\n"
-             f"🎫 Available spins: {user['spins']}\n"
-             f"🔑 Referral code: {user['referral_code']}\n"
-             f"👥 Total referrals: {user['total_referrals']}"
-             f"{referred_by}",
+    await update.message.reply_text(
+        f"Hello {user['username']}! 🎉\n\n"
+        f"💰 Your Balance: {user['balance']} GKY\n"
+        f"🎫 You have {user['spins']} spins left.\n\n"
+        "What would you like to do next?",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-async def buy_spins(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    
-    keyboard = [
-        [InlineKeyboardButton(SPIN_PACKAGES['3_spins']['label'], callback_data='buy_3')],
-        [InlineKeyboardButton(SPIN_PACKAGES['5_spins']['label'], callback_data='buy_5')],
-        [InlineKeyboardButton(SPIN_PACKAGES['10_spins']['label'], callback_data='buy_10')],
-        [InlineKeyboardButton("Cancel", callback_data='cancel')]
-    ]
-    
-    await query.edit_message_text(
-        "💳 Buy additional spins with GiankyCoin (GKY):\n\n"
-        f"{SPIN_PACKAGES['3_spins']['label']}\n"
-        f"{SPIN_PACKAGES['5_spins']['label']}\n"
-        f"{SPIN_PACKAGES['10_spins']['label']}\n\n"
-        "Select an option:",
-        reply_markup=InlineKeyboardMarkup(keyboard))
-    )
-    
-    return BUY_SPINS
-
-async def handle_spin_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    
-    user_id = update.effective_user.id
-    user = get_user(user_id)
-    
-    if not user:
-        await query.edit_message_text("❌ User not found. Please register first.")
-        return ConversationHandler.END
-    
-    if query.data == 'buy_3':
-        package = SPIN_PACKAGES['3_spins']
-    elif query.data == 'buy_5':
-        package = SPIN_PACKAGES['5_spins']
-    elif query.data == 'buy_10':
-        package = SPIN_PACKAGES['10_spins']
-    else:
-        await query.edit_message_text("Purchase canceled.")
-        return ConversationHandler.END
-    
-    # Check if user has enough balance
-    if user['balance'] < package['price']:
-        await query.edit_message_text(
-            f"❌ Insufficient balance!\n"
-            f"You need {package['price']} GKY but only have {user['balance']} GKY.\n\n"
-            f"Play more to earn GiankyCoin!"
-        )
-        return ConversationHandler.END
-    
-    # Process purchase
-    conn = sqlite3.connect('giankybot.db')
-    cursor = conn.cursor()
-    
-    try:
-        # Deduct balance
-        cursor.execute('''
-        UPDATE users 
-        SET balance = balance - ?,
-            spins = spins + ?
-        WHERE user_id = ?
-        ''', (package['price'], package['spins'], user_id))
-        
-        # Record transaction
-        cursor.execute('''
-        INSERT INTO transactions (user_id, amount, tx_type)
-        VALUES (?, ?, ?)
-        ''', (user_id, package['price'], 'purchase'))
-        
-        # Record spin purchase
-        cursor.execute('''
-        INSERT INTO spin_purchases (user_id, spins_count, amount_paid, status)
-        VALUES (?, ?, ?, ?)
-        ''', (user_id, package['spins'], package['price'], 'completed'))
-        
-        conn.commit()
-        
-        await query.edit_message_text(
-            f"✅ Purchase successful!\n"
-            f"🎫 You received {package['spins']} additional spins.\n"
-            f"💰 {package['price']} GKY deducted from your balance.\n"
-            f"🔄 Total spins now: {user['spins'] + package['spins']}"
-        )
-    except Exception as e:
-        conn.rollback()
-        logger.error(f"Error processing purchase: {e}")
-        await query.edit_message_text("❌ An error occurred during purchase. Please try again.")
-    finally:
-        conn.close()
-    
-    return ConversationHandler.END
-
-async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        data = json.loads(update.effective_message.web_app_data.data)
-        prize = data['prize']
-        user_id = update.effective_user.id
-        user = get_user(user_id)
-        
-        if not user:
-            await update.message.reply_text("❌ User not registered")
-            return
-        
-        if user['spins'] <= 0:
-            await update.message.reply_text(
-                "❌ No spins left!\n\n"
-                "You can:\n"
-                "1. Invite friends to get free spins\n"
-                "2. Buy additional spins with /buyspins"
-            )
-            return
-        
-        # Update user balance and spins
-        conn = sqlite3.connect('giankybot.db')
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute('''
-            UPDATE users 
-            SET balance = balance + ?, 
-                spins = spins - 1 
-            WHERE user_id = ?
-            ''', (prize['value'], user_id))
-            
-            # Record the win
-            cursor.execute('''
-            INSERT INTO transactions (user_id, amount, tx_type)
-            VALUES (?, ?, ?)
-            ''', (user_id, prize['value'], 'win'))
-            
-            conn.commit()
-            
-            # Get updated user info
-            user = get_user(user_id)
-            
-            await update.message.reply_text(
-                f"🎉 Congratulations! You won {prize['label']}!\n"
-                f"💰 New balance: {user['balance']} GKY\n"
-                f"🎫 Remaining spins: {user['spins']}\n\n"
-                f"Your winnings have been credited to your account!"
-            )
-        except Exception as e:
-            conn.rollback()
-            logger.error(f"Error processing win: {e}")
-            await update.message.reply_text("⚠️ An error occurred. Please try again.")
-        finally:
-            conn.close()
-
-    except Exception as e:
-        logger.error(f"Error handling WebApp data: {e}")
-        await update.message.reply_text("⚠️ An error occurred. Please try again.")
-
+# Main function to run the bot
 def main():
-    TOKEN = os.getenv("BOT_TOKEN")
-    if not TOKEN:
-        raise ValueError("BOT_TOKEN not found in .env file!")
-
-    app = Application.builder().token(TOKEN).build()
-
-    # Conversation handler
-    conv_handler = ConversationHandler(
+    application = Application.builder().token(os.getenv("TELEGRAM_TOKEN")).build()
+    
+    conversation_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            REGISTER: [
-                CallbackQueryHandler(register, pattern='^register$'),
-                CallbackQueryHandler(login, pattern='^login$')
-            ],
-            LOGIN: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_wallet_or_referral)
-            ],
-            WAIT_FOR_WALLET: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_wallet_after_referral)
-            ],
-            BUY_SPINS: [
-                CallbackQueryHandler(handle_spin_purchase, pattern='^buy_'),
-                CallbackQueryHandler(lambda u, c: ConversationHandler.END, pattern='^cancel$')
-            ]
+            REGISTER: [CallbackQueryHandler(register, pattern='^register$')],
+            LOGIN: [CallbackQueryHandler(login, pattern='^login$')],
+            WAIT_FOR_WALLET: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_wallet_after_referral)],
         },
-        fallbacks=[CommandHandler("start", start)],
+        fallbacks=[],
     )
 
-    # Add handlers
-    app.add_handler(conv_handler)
-    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
-    app.add_handler(CommandHandler("buyspins", buy_spins))
-    app.add_handler(CallbackQueryHandler(buy_spins, pattern='^buy_spins$'))
-
-    # Start bot
-    logger.info("✅ GiankyBotes started. Listening...")
-    app.run_polling()
+    application.add_handler(conversation_handler)
+    application.run_polling()
 
 if __name__ == "__main__":
     main()
