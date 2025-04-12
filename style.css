@@ -1,152 +1,127 @@
-* { 
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
     font-family: 'Roboto', sans-serif;
 }
 
 body {
-    background-color: #f5f5f5;
-    color: #333;
+    background: linear-gradient(to right, #f0f0f0, #dfe9f3);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
-}
-
-.container {
-    background-color: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    width: 100%;
-    max-width: 400px;
     text-align: center;
 }
 
+.container {
+    max-width: 600px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
 h1 {
-    color: #4a2c82;
-    margin-bottom: 10px;
-    font-size: 24px;
+    color: #333;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
 }
 
 h2 {
-    color: #6a3cb5;
-    margin-bottom: 30px;
-    font-size: 20px;
+    color: #777;
+    margin-bottom: 2rem;
 }
 
+/* Ruota */
 .wheel-container {
     position: relative;
     width: 300px;
     height: 300px;
-    margin: 0 auto 30px;
+    margin: 0 auto 20px;
 }
 
 .wheel {
+    position: relative;
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    position: relative;
+    border: 6px solid #333;
     overflow: hidden;
-    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
-    transform: rotate(0deg);
-    box-shadow: 0 0 0 8px #4a2c82, 0 0 20px rgba(0, 0, 0, 0.2);
-}
-
-.wheel-center {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background-color: #fff;
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    border: 4px solid #4a2c82;
-}
-
-.pointer {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-top: 30px solid #ff5722;
-    z-index: 20;
-}
-
-.spin-btn {
-    background-color: #6a3cb5;
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    font-size: 18px;
-    border-radius: 50px;
-    cursor: pointer;
-    margin-bottom: 30px;
-    transition: all 0.3s;
-    box-shadow: 0 5px 15px rgba(106, 60, 181, 0.4);
-    width: 100%;
-    max-width: 250px;
-}
-
-.spin-btn:hover {
-    background-color: #4a2c82;
-    transform: translateY(-2px);
-}
-
-.spin-btn:active {
-    transform: translateY(1px);
-}
-
-.spin-btn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-.result-container {
-    margin-bottom: 20px;
-    min-height: 60px;
-}
-
-.result {
-    font-size: 24px;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 10px;
-    background-color: #f0e6ff;
-    display: inline-block;
+    transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 .wheel-section {
     position: absolute;
     width: 50%;
     height: 50%;
-    transform-origin: bottom right;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    font-size: 16px;
-    text-align: center;
-    padding-left: 40px;
-    box-sizing: border-box;
-    transform: rotate(calc(360deg / var(--sections))) skewY(-60deg);
+    left: 50%;
+    top: 50%;
+    transform-origin: 0% 100%;
+    clip-path: polygon(0% 0%, 100% 0%, 0% 100%);
 }
 
-.wheel-section:nth-child(1) { background-color: #FF5733; }
-.wheel-section:nth-child(2) { background-color: #33FF57; }
-.wheel-section:nth-child(3) { background-color: #3357FF; }
-.wheel-section:nth-child(4) { background-color: #FF33A1; }
-.wheel-section:nth-child(5) { background-color: #FFC300; }
-.wheel-section:nth-child(6) { background-color: #9B59B6; }
+.wheel-section span {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform-origin: 0% 0%;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* Centro decorativo */
+.wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    background: #333;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+/* Puntatore */
+.pointer {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid #333;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* Bottone */
+.spin-btn {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.spin-btn:hover {
+    background-color: #45a049;
+}
+
+/* Risultato */
+.result-container {
+    margin-top: 20px;
+    display: none;
+}
+
+.result {
+    font-size: 1.5rem;
+    padding: 10px;
+    border-radius: 10px;
+}
 
